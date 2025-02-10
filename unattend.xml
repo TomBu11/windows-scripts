@@ -1,88 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
 <unattend xmlns="urn:schemas-microsoft-com:unattend">
-  <!-- WindowsPE pass: Locale, language, and input settings -->
-  <settings pass="windowsPE">
-    <component name="Microsoft-Windows-International-Core" processorArchitecture="amd64" xmlns="urn:schemas-microsoft-com:unattend">
-      <InputLocale>0809:00000809</InputLocale> <!-- English (UK) Keyboard -->
-      <SystemLocale>en-GB</SystemLocale> <!-- System Locale: English (UK) -->
-      <UILanguage>en-GB</UILanguage> <!-- UI Language: English (UK) -->
-      <UserLocale>en-GB</UserLocale> <!-- User Locale: English (UK) -->
-    </component>
-  </settings>
+    <settings pass="windowsPE">
+        <component name="Microsoft-Windows-International-Core" processorArchitecture="amd64" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <InputLocale>0809:00000809</InputLocale>
+            <SystemLocale>en-GB</SystemLocale>
+            <UILanguage>en-GB</UILanguage>
+            <UserLocale>en-GB</UserLocale>
+        </component>
+    </settings>
 
-  <!-- Skip OOBE steps: Language, Region, Account setup, etc. -->
-  <settings pass="oobeSystem">
-    <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" xmlns="urn:schemas-microsoft-com:unattend">
-      <!-- Skip Language/Region Selection -->
-      <SkipMachineOOBE>true</SkipMachineOOBE>
-      <SkipUserOOBE>true</SkipUserOOBE>
+    <settings pass="oobeSystem">
+        <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <OOBE>
+                <HideEULA>true</HideEULA>
+                <HideLocalAccountScreen>true</HideLocalAccountScreen>
+                <HideOnlineAccountScreens>true</HideOnlineAccountScreens>
+                <HideWirelessSetupInOOBE>true</HideWirelessSetupInOOBE>
+                <NetworkLocation>Home</NetworkLocation>
+                <ProtectYourPC>3</ProtectYourPC>
+                <SkipMachineOOBE>true</SkipMachineOOBE>
+                <SkipUserOOBE>true</SkipUserOOBE>
+                <UnattendEnableRetail>true</UnattendEnableRetail>
+            </OOBE>
 
-      <!-- Skip product key entry -->
-      <ProductKey>
-        <Key>YourProductKeyHere</Key>
-        <WillShowUI>Never</WillShowUI>
-      </ProductKey>
+            <UserAccounts>
+                <LocalAccounts>
+                    <LocalAccount wcm:action="add">
+                        <Name>Rocksalt</Name>
+                        <Password>
+                            <Value>Temporary11Password</Value>
+                            <PlainText>true</PlainText>
+                        </Password>
+                        <Group>Administrators</Group>
+                        <ChangePasswordAtNextLogon>true</ChangePasswordAtNextLogon>
+                    </LocalAccount>
+                </LocalAccounts>
+            </UserAccounts>
 
-      <!-- Create a Local Account named "Rocksalt" -->
-      <UserAccounts>
-        <LocalAccounts>
-          <LocalAccount wcm:action="add">
-            <Name>Rocksalt</Name>
-            <Password>
-              <Value>Temporary11Password</Value> <!-- Set the initial password here -->
-              <PlainText>true</PlainText>
-            </Password>
-            <Group>Administrators</Group>
-            <!-- Force password change at next login -->
-            <ChangePasswordAtNextLogon>true</ChangePasswordAtNextLogon>
-          </LocalAccount>
-        </LocalAccounts>
-      </UserAccounts>
+            <RegisteredOwner>Rocksalt</RegisteredOwner>
+            <RegisteredOrganization>RocksaltIT</RegisteredOrganization>
 
-      <!-- Disable Microsoft Account Login -->
-      <DisableCortana>true</DisableCortana>
+            <TimeZone>GMT Standard Time</TimeZone>
 
-      <!-- Skip Wi-Fi/Network Setup -->
-      <NetworkLocation>Home</NetworkLocation>
+            <FirstLogonCommands>
+                <SynchronousCommand wcm:action="add">
+                    <CommandLine>reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Feeds" /v "EnableFeeds" /t REG_DWORD /d 0 /f</CommandLine>
+                    <Order>1</Order>
+                    <Description>Disable News and Interests</Description>
+                </SynchronousCommand>
+                <SynchronousCommand wcm:action="add">
+                    <CommandLine>reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection" /v "AllowTelemetry" /t REG_DWORD /d 0 /f</CommandLine>
+                    <Order>2</Order>
+                    <Description>Disable Telemetry</Description>
+                </SynchronousCommand>
+                <SynchronousCommand wcm:action="add">
+                    <CommandLine>reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\AdvertisingInfo" /v "Enabled" /t REG_DWORD /d 0 /f</CommandLine>
+                    <Order>3</Order>
+                    <Description>Disable Advertising ID</Description>
+                </SynchronousCommand>
+                <SynchronousCommand wcm:action="add">
+                    <CommandLine>reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\CloudContent" /v "DisableWindowsConsumerFeatures" /t REG_DWORD /d 1 /f</CommandLine>
+                    <Order>4</Order>
+                    <Description>Disable Consumer Features</Description>
+                </SynchronousCommand>
+                <SynchronousCommand wcm:action="add">
+                    <CommandLine>reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\CloudContent" /v "DisableTailoredExperiencesWithDiagnosticData" /t REG_DWORD /d 1 /f</CommandLine>
+                    <Order>5</Order>
+                    <Description>Disable Tailored Experiences</Description>
+                </SynchronousCommand>
+                <SynchronousCommand wcm:action="add">
+                    <CommandLine>cmd.exe /c C:\Windows\Setup\Scripts\install-apps.bat</CommandLine>
+                    <Order>6</Order>
+                    <Description>Install Apps</Description>
+                </SynchronousCommand>
+            </FirstLogonCommands>
+        </component>
 
-      <!-- Set Time Zone to UK -->
-      <TimeZone>GMT Standard Time</TimeZone> <!-- London Time Zone (GMT/BST) -->
+        <component name="Microsoft-Windows-TCPIP" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <DisablePrivacyExperience>true</DisablePrivacyExperience>
+        </component>
 
-      <!-- Telemetry Settings: Disable Microsoft Telemetry -->
-      <Telemetry>
-        <AllowTelemetry>0</AllowTelemetry> <!-- Disable all telemetry data collection -->
-        <DoNotTrack>true</DoNotTrack> <!-- Prevent tracking -->
-        <AllowWired>false</AllowWired> <!-- Disable telemetry over wired connections -->
-      </Telemetry>
-    </component>
-  </settings>
+        <component name="Microsoft-Windows-AdvertisingInfo" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <DisableAdvertisingInfo>true</DisableAdvertisingInfo>
+        </component>
+    </settings>
 
-  <!-- Skip the Microsoft Account prompt entirely -->
-  <settings pass="specialize">
-    <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" xmlns="urn:schemas-microsoft-com:unattend">
-      <DoNotCleanUpNonPresentDevices>true</DoNotCleanUpNonPresentDevices>
-      <ComputerName>YourPCName</ComputerName>
-    </component>
-  </settings>
-
-  <!-- First Logon Commands: Install Apps (such as using Ninite) -->
-  <settings pass="oobeSystem">
-    <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" xmlns="urn:schemas-microsoft-com:unattend">
-      <FirstLogonCommands>
-        <SynchronousCommand wcm:action="add">
-          <CommandLine>cmd.exe /c C:\Windows\Setup\Scripts\install-apps.bat</CommandLine>
-          <Order>1</Order>
-          <Description>Install Apps</Description>
-        </SynchronousCommand>
-      </FirstLogonCommands>
-    </component>
-  </settings>
-
-  <!-- Generalize pass: Additional cleanup settings -->
-  <settings pass="generalize">
-    <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" xmlns="urn:schemas-microsoft-com:unattend">
-      <OOBE>
-        <HideEULA>true</HideEULA>
-      </OOBE>
-    </component>
-  </settings>
+    <settings pass="specialize">
+        <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <DoNotCleanUpNonPresentDevices>true</DoNotCleanUpNonPresentDevices>
+        </component>
+    </settings>
 </unattend>
