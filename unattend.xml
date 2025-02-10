@@ -1,0 +1,78 @@
+<unattend xmlns="urn:schemas-microsoft-com:unattend">
+  <!-- WindowsPE pass: Locale, language, and input settings -->
+  <settings pass="windowsPE">
+    <component name="Microsoft-Windows-International-Core" processorArchitecture="amd64" xmlns="urn:schemas-microsoft-com:unattend">
+      <InputLocale>0809:00000809</InputLocale> <!-- English (UK) Keyboard -->
+      <SystemLocale>en-GB</SystemLocale> <!-- System Locale: English (UK) -->
+      <UILanguage>en-GB</UILanguage> <!-- UI Language: English (UK) -->
+      <UserLocale>en-GB</UserLocale> <!-- User Locale: English (UK) -->
+    </component>
+  </settings>
+
+  <!-- Skip OOBE steps: Language, Region, Account setup, etc. -->
+  <settings pass="oobeSystem">
+    <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" xmlns="urn:schemas-microsoft-com:unattend">
+      <!-- Skip Language/Region Selection -->
+      <SkipMachineOOBE>true</SkipMachineOOBE>
+      <SkipUserOOBE>true</SkipUserOOBE>
+
+      <!-- Skip product key entry -->
+      <ProductKey>
+        <Key>YourProductKeyHere</Key>
+        <WillShowUI>Never</WillShowUI>
+      </ProductKey>
+
+      <!-- Create a Local Account named "Rocksalt" -->
+      <UserAccounts>
+        <LocalAccounts>
+          <LocalAccount wcm:action="add">
+            <Name>Rocksalt</Name>
+            <Password>
+              <Value>YourPasswordHere</Value> <!-- Set the initial password here -->
+              <PlainText>true</PlainText>
+            </Password>
+            <Group>Administrators</Group>
+            <!-- Force password change at next login -->
+            <ChangePasswordAtNextLogon>true</ChangePasswordAtNextLogon>
+          </LocalAccount>
+        </LocalAccounts>
+      </UserAccounts>
+
+      <!-- Disable Microsoft Account Login -->
+      <DisableCortana>true</DisableCortana>
+
+      <!-- Skip Wi-Fi/Network Setup -->
+      <NetworkLocation>Home</NetworkLocation>
+
+      <!-- Disable Microsoft Store setup -->
+      <SkipWindowsStore>false</SkipWindowsStore>
+
+      <!-- Set Time Zone to UK -->
+      <TimeZone>GMT Standard Time</TimeZone> <!-- London Time Zone (GMT/BST) -->
+
+      <!-- Telemetry Settings: Disable Microsoft Telemetry -->
+      <Telemetry>
+        <AllowTelemetry>0</AllowTelemetry> <!-- Disable all telemetry data collection -->
+        <DoNotTrack>true</DoNotTrack> <!-- Prevent tracking -->
+        <AllowWired>false</AllowWired> <!-- Disable telemetry over wired connections -->
+      </Telemetry>
+    </component>
+  </settings>
+
+  <!-- Skip the Microsoft Account prompt entirely -->
+  <settings pass="specialize">
+    <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" xmlns="urn:schemas-microsoft-com:unattend">
+      <DoNotCleanUpNonPresentDevices>true</DoNotCleanUpNonPresentDevices>
+      <ComputerName>YourPCName</ComputerName>
+    </component>
+  </settings>
+
+  <!-- Generalize pass: Additional cleanup settings -->
+  <settings pass="generalize">
+    <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" xmlns="urn:schemas-microsoft-com:unattend">
+      <OOBE>
+        <HideEULA>true</HideEULA>
+      </OOBE>
+    </component>
+  </settings>
+</unattend>
