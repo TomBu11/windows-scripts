@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <unattend xmlns="urn:schemas-microsoft-com:unattend">
     <settings pass="windowsPE">
-        <component name="Microsoft-Windows-International-Core" processorArchitecture="amd64" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <component name="Microsoft-Windows-International-Core" processorArchitecture="amd64">
             <InputLocale>0809:00000809</InputLocale>
             <SystemLocale>en-GB</SystemLocale>
             <UILanguage>en-GB</UILanguage>
@@ -10,7 +10,7 @@
     </settings>
 
     <settings pass="oobeSystem">
-        <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64">
             <OOBE>
                 <HideEULA>true</HideEULA>
                 <HideLocalAccountScreen>true</HideLocalAccountScreen>
@@ -75,18 +75,10 @@
                 </SynchronousCommand>
             </FirstLogonCommands>
         </component>
-
-        <component name="Microsoft-Windows-TCPIP" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-            <DisablePrivacyExperience>true</DisablePrivacyExperience>
-        </component>
-
-        <component name="Microsoft-Windows-AdvertisingInfo" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-            <DisableAdvertisingInfo>true</DisableAdvertisingInfo>
-        </component>
     </settings>
 
     <settings pass="specialize">
-        <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64">
             <DoNotCleanUpNonPresentDevices>true</DoNotCleanUpNonPresentDevices>
         </component>
     </settings>
