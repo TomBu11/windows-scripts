@@ -1,0 +1,1 @@
+RS	DATE	Done?	GI Number	PC Name	Make	Model	Type	Serial No.	OS	W11 Complient	Updates	Drivers	Sophos	RS Local	Client Admin	Domain?	Username	Users	Processor	RAM		Disk		BitLocker	TeamViewer	Brute Force	Notes
