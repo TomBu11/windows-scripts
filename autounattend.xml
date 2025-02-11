@@ -111,6 +111,7 @@
 							<Value></Value>
 							<PlainText>true</PlainText>
 						</Password>
+						<ChangePasswordAtNextLogon>true</ChangePasswordAtNextLogon>
 					</LocalAccount>
 					<LocalAccount wcm:action="add">
 						<Name>User</Name>
@@ -120,6 +121,7 @@
 							<Value></Value>
 							<PlainText>true</PlainText>
 						</Password>
+						<ChangePasswordAtNextLogon>true</ChangePasswordAtNextLogon>
 					</LocalAccount>
 				</LocalAccounts>
 			</UserAccounts>
