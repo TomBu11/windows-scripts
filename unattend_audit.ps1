@@ -5,7 +5,6 @@ $outputDirectory = [System.IO.Path]::GetDirectoryName($outputFile)
 # Create the directory if it doesn't exist
 if (-not (Test-Path -Path $outputDirectory)) {
     New-Item -ItemType Directory -Path $outputDirectory
-    Write-Host "Directory created: $outputDirectory"
 }
 
 $memoryType = @{
@@ -29,12 +28,8 @@ $diskSize = [math]::Round((Get-WmiObject -Class Win32_LogicalDisk -Filter "Devic
 $diskType = Get-PhysicalDisk | Select-Object -ExpandProperty MediaType
 
 # Prepare tab-separated line
-$line = "`t$Date`tno`tGI`t$pcName`t$manufacturer`t$model`t`t$serialNumber`t$os`t`t`t`t`t`t`t`t`t`t$processor`t$ram`t`t$diskSize`t$diskType`t`t`t"
+$line = "`t$Date`tno`tGI`t$pcName`t$manufacturer`t$model`t`t$serialNumber`t$os`tYes`t`t`t`t`t`t`t`t`t$processor`t$ram`t`t$diskSize`t$diskType`t`t`tYes"
 
 # Append to the output file
 $line | Out-File -Append -FilePath $outputFile
 
-Write-Host "System information has been appended to $outputFile"
-
-# Wait for user input before exiting
-Read-Host -Prompt "Press Enter to exit"
