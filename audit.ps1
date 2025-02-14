@@ -1,6 +1,6 @@
 # Define output file path
-$outputFile = "C:\Rocksalt\Audit.txt"
-$outputDirectory = [System.IO.Path]::GetDirectoryName($outputFile)
+$outputDirectory = "C:\Rocksalt"
+$outputFile = "$outputDirectory\Audit.txt"
 
 # Create the directory if it doesn't exist
 if (-not (Test-Path -Path $outputDirectory)) {
@@ -15,6 +15,7 @@ $memoryType = @{
 }
 
 # Set Brute Force rules
+Write-Host "Running brute force commands"
 net accounts /lockoutthreshold:10
 net accounts /lockoutwindow:5
 net accounts /lockoutduration:30
