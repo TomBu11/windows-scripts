@@ -29,6 +29,3 @@ foreach ($exe in $exeFiles) {
   Write-Host "Installing: $($exe.Name)"
   Start-Process -FilePath $exe.FullName -ArgumentList "/S", "/quiet", "/norestart" -NoNewWindow -Wait
 }
-
-# Wait for user input before exiting
-Read-Host -Prompt "Press Enter to exit"
