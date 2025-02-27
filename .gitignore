@@ -1,3 +1,5 @@
-windows_iso/*
+windows_iso
 *.iso
+*.tmp
 TeamViewer_Host_Setup.exe
+windows_apps
