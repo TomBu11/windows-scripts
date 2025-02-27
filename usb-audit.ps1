@@ -21,6 +21,8 @@ net accounts /lockoutwindow:5
 net accounts /lockoutduration:30
 
 # Get audit information
+$name = Read-Host "Enter Name"
+$gi = Read-Host "Enter GI (numbers)"
 $date = Get-Date -Format "yyyy-MM-dd"
 $pcName = $env:COMPUTERNAME
 $manufacturer = (Get-WmiObject -Class Win32_ComputerSystem).Manufacturer
@@ -34,9 +36,15 @@ $diskSize = [math]::Round((Get-WmiObject -Class Win32_LogicalDisk -Filter "Devic
 $diskType = Get-PhysicalDisk | Select-Object -ExpandProperty MediaType
 
 # Prepare tab-separated line
-$line = "`t$Date`tno`tGI`t$pcName`t$manufacturer`t$model`t`t$serialNumber`t$os`t`t`t`t`t`t`t`t`t`t$processor`t$ram`t`t$diskSize`t$diskType`t`t`tYes"
+$line = "`t$Date`tno`tGI$gi`t$pcName`t$manufacturer`t$model`t`t$serialNumber`t$os`t`t`t`t`t`t`t`t`t$name`t$processor`t$ram`t`t$diskSize`t$diskType`t`t`tYes"
 
 # Append to the output file
+$line | Out-File -Append -FilePath $outputFile
+
+Write-Host "System information has been appended to $outputFile"
+
+$driveLetter = Split-Path -Path $MyInvocation.MyCommand.Definition -Qualifier
+$outputFile = "$driveLetter\Audit.txt"
 $line | Out-File -Append -FilePath $outputFile
 
 Write-Host "System information has been appended to $outputFile"
