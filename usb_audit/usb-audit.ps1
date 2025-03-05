@@ -39,8 +39,10 @@ $antiVirus = Read-Host "Antivirus"
 # Check if the local Rocksalt exists
 $rocksaltExists = if (Get-LocalUser -Name "Rocksalt" -ErrorAction SilentlyContinue) {
   "Yes"
+  Write-Host "Rocksalt user exits"
 } else {
   "No"
+  Write-Host "Rocksalt user does not exist please create one" -ForegroundColor Red
 }
 $clientAdmin = Read-Host "Client Admin"
 $domainName = (Get-WmiObject -Class Win32_ComputerSystem).Domain
