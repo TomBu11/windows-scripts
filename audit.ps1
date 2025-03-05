@@ -21,9 +21,11 @@ net accounts /lockoutwindow:5
 net accounts /lockoutduration:30
 
 # Get audit information
-$users = Read-Host "Users"
-$gi = Read-Host "GI (numbers)"
+$auditer = Read-Host "RS (initials)"
 $date = Get-Date -Format "yyyy-MM-dd"
+$users = Read-Host "Users"
+$done = "No"
+$gi = Read-Host "GI (numbers)"
 $pcName = $env:COMPUTERNAME
 $manufacturer = (Get-WmiObject -Class Win32_ComputerSystem).Manufacturer
 $model = (Get-WmiObject -Class Win32_ComputerSystem).Model
@@ -32,6 +34,8 @@ $serialNumber = (Get-WmiObject -Class Win32_BIOS).SerialNumber
 $os = (Get-WmiObject -Class Win32_OperatingSystem).Caption
 $win11Comp = if ($os -match "11") { "Yes" } else { "No" }
 $updates = Read-Host "Updates"
+$drivers = Read-Host "Drivers"
+$antiVirus = Read-Host "Antivirus"
 # Check if the local Rocksalt exists
 $rocksaltExists = if (Get-LocalUser -Name "Rocksalt" -ErrorAction SilentlyContinue) {
   "Yes"
@@ -48,10 +52,11 @@ $diskSize = [math]::Round((Get-WmiObject -Class Win32_LogicalDisk -Filter "Devic
 $diskType = Get-PhysicalDisk | Select-Object -ExpandProperty MediaType
 $bitlocker = Read-Host "Bitlocker"
 $teamviewer = Read-Host "Teamviewer ID"
+$bruteForce = "Yes"
 $notes = Read-Host "Notes"
 
 # Prepare tab-separated line
-$line = "`t$date`t$users`tNo`tGI$gi`t$pcName`t$manufacturer`t$model`t$type`t$serialNumber`t$os`t$win11Comp`t$updates`t$drivers`t$antiVirus`t$rocksaltExists`t$clientAdmin`t$domainName`t$userName`t$processor`t$ram`t$ramType`t$diskSize`t$diskType`t$bitlocker`t$teamviewer`tYes`t$notes"
+$line = "$auditer`t$date`t$users`t$done`tGI$gi`t$pcName`t$manufacturer`t$model`t$type`t$serialNumber`t$os`t$win11Comp`t$updates`t$drivers`t$antiVirus`t$rocksaltExists`t$clientAdmin`t$domainName`t$userName`t$processor`t$ram`t$ramType`t$diskSize`t$diskType`t$bitlocker`t$teamviewer`t$bruteForce`t$notes"
 
 # Append to the output file
 $line | Out-File -Append -FilePath $outputFile
