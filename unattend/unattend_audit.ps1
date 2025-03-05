@@ -36,7 +36,15 @@ $antiVirus = Read-Host "Antivirus"
 $rocksaltExists = "Yes"
 $clientAdmin = Read-Host "Client Admin"
 $domainName = (Get-WmiObject -Class Win32_ComputerSystem).Domain
-$userName = Read-Host "Username (Account they use)"
+$createUser = Read-Host "Create standard user? (Y/n)"
+if ($createUser -eq "Y" -or $createUser -eq "") {
+    # Prompt for the username and password
+    $username = Read-Host "Username:"
+    $password = Read-Host "Password:" -AsSecureString
+
+    # Create the new user
+    New-LocalUser -Name $username -Password $password -FullName $username
+}
 $processor = (Get-WmiObject -Class Win32_Processor).Name
 $ram = (Get-CimInstance -ClassName Win32_PhysicalMemory | Measure-Object -Property Capacity -Sum).Sum / 1GB
 # $ramType = Get-CimInstance -ClassName Win32_PhysicalMemory | Select-Object @{Name="MemoryType"; Expression={if ($memoryType[$_.MemoryType]) {$memoryType[$_.MemoryType]} else {"-"}}}
@@ -48,7 +56,7 @@ $bruteForce = "Yes"
 $notes = Read-Host "Notes"
 
 # Prepare tab-separated line
-$line = "$auditer`t$date`t$users`t$done`tGI$gi`t$pcName`t$manufacturer`t$model`t$type`t$serialNumber`t$os`t$win11Comp`t$updates`t$drivers`t$antiVirus`t$rocksaltExists`t$clientAdmin`t$domainName`t$userName`t$processor`t$ram`t$ramType`t$diskSize`t$diskType`t$bitlocker`t$teamviewer`t$bruteForce`t$notes"
+$line = "$auditer`t$date`t$users`t$done`tGI$gi`t$pcName`t$manufacturer`t$model`t$type`t$serialNumber`t$os`t$win11Comp`t$updates`t$drivers`t$antiVirus`t$rocksaltExists`t$clientAdmin`t$domainName`t$username`t$processor`t$ram`t$ramType`t$diskSize`t$diskType`t$bitlocker`t$teamviewer`t$bruteForce`t$notes"
 
 # Append to the output file
 $line | Out-File -Append -FilePath $outputFile
