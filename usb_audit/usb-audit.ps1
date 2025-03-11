@@ -29,7 +29,11 @@ $gi = Read-Host "GI (numbers)"
 $pcName = $env:COMPUTERNAME
 $manufacturer = (Get-WmiObject -Class Win32_ComputerSystem).Manufacturer
 $model = (Get-WmiObject -Class Win32_ComputerSystem).Model
-$type = Read-Host "Type (Laptop or Desktop)"
+$type = if ((Get-WmiObject -Class Win32_ComputerSystem).PCSystemType -eq 2) {
+  "Laptop"
+} else {
+  "Desktop"
+}
 $serialNumber = (Get-WmiObject -Class Win32_BIOS).SerialNumber
 $os = (Get-WmiObject -Class Win32_OperatingSystem).Caption
 $win11Comp = if ($os -match "11") { "Yes" } else { "No" }
