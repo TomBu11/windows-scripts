@@ -29,11 +29,7 @@ $gi = Read-Host "GI (numbers)"
 $pcName = $env:COMPUTERNAME
 $manufacturer = (Get-WmiObject -Class Win32_ComputerSystem).Manufacturer
 $model = (Get-WmiObject -Class Win32_ComputerSystem).Model
-$type = if ((Get-WmiObject -Class Win32_ComputerSystem).PCSystemType -eq 2) {
-  "Laptop"
-} else {
-  "Desktop"
-}
+$type = if ((Get-WmiObject -Class Win32_ComputerSystem).PCSystemType -eq 2) { "Laptop" } else { "Desktop" }
 $serialNumber = (Get-WmiObject -Class Win32_BIOS).SerialNumber
 $os = (Get-WmiObject -Class Win32_OperatingSystem).Caption
 $win11Comp = if ($os -match "11") { "Yes" } else { "No" }
@@ -56,7 +52,7 @@ $ram = (Get-CimInstance -ClassName Win32_PhysicalMemory | Measure-Object -Proper
 # $ramType = Get-CimInstance -ClassName Win32_PhysicalMemory | Select-Object @{Name="MemoryType"; Expression={if ($memoryType[$_.MemoryType]) {$memoryType[$_.MemoryType]} else {"-"}}}
 $diskSize = [math]::Round((Get-WmiObject -Class Win32_LogicalDisk -Filter "DeviceID='C:'").Size / 1GB)
 $diskType = Get-PhysicalDisk | Select-Object -ExpandProperty MediaType
-$bitlocker = Read-Host "Bitlocker"
+$bitlocker = if ($bitlockerStatus -eq 1) { "Yes" } else { "No" }
 $teamviewer = Read-Host "Teamviewer ID"
 $bruteForce = "Yes"
 $notes = Read-Host "Notes"
