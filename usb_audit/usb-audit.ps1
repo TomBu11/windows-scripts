@@ -33,9 +33,9 @@ $type = if ((Get-WmiObject -Class Win32_ComputerSystem).PCSystemType -eq 2) { "L
 $serialNumber = (Get-WmiObject -Class Win32_BIOS).SerialNumber
 $os = (Get-WmiObject -Class Win32_OperatingSystem).Caption
 $win11Comp = if ($os -match "11") { "Yes" } else { "No" }
-$updates = if (Read-Host "Updates (y/N)" -eq "y") { "Yes" } else { "No" }
-$drivers = if (Read-Host "Drivers (y/N)" -eq "y") { "Yes" } else { "No" }
-$antiVirus = if (Read-Host "Antivirus (y/N)" -eq "y") { "Yes" } else { "No" }
+$updates = if ((Read-Host "Updates (y/N)") -eq "y") { "Yes" } else { "No" }
+$drivers = if ((Read-Host "Drivers (y/N)") -eq "y") { "Yes" } else { "No" }
+$antiVirus = if ((Read-Host "Antivirus (y/N)") -eq "y") { "Yes" } else { "No" }
 # Check if the local Rocksalt exists
 $rocksaltExists = if (Get-LocalUser -Name "Rocksalt" -ErrorAction SilentlyContinue) {
   "Yes"
@@ -46,7 +46,7 @@ $rocksaltExists = if (Get-LocalUser -Name "Rocksalt" -ErrorAction SilentlyContin
 }
 $clientAdmin = Read-Host "Client Admin"
 $domainName = (Get-WmiObject -Class Win32_ComputerSystem).Domain
-$userName = Read-Host "Username (Account they use)"
+$userName = Read-Host "Non admin user"
 $processor = (Get-WmiObject -Class Win32_Processor).Name
 $ram = (Get-CimInstance -ClassName Win32_PhysicalMemory | Measure-Object -Property Capacity -Sum).Sum / 1GB
 # $ramType = Get-CimInstance -ClassName Win32_PhysicalMemory | Select-Object @{Name="MemoryType"; Expression={if ($memoryType[$_.MemoryType]) {$memoryType[$_.MemoryType]} else {"-"}}}
@@ -58,7 +58,7 @@ $bruteForce = "Yes"
 $notes = Read-Host "Notes"
 
 # Prepare tab-separated line
-$line = "$auditer`t$date`t$done`t$users`tGI$gi`t$pcName`t$manufacturer`t$model`t$type`t$serialNumber`t$os`t$win11Comp`t$updates`t$drivers`t$antiVirus`t$rocksaltExists`t$clientAdmin`t$domainName`t$userName`t$processor`t$ram`t$ramType`t$diskSize`t$diskType`t$bitlocker`t$teamviewer`t$bruteForce`t$notes"
+$line = "$auditer`t$date`t$done`t$users`tGI$gi`t$pcName`t$manufacturer`t$model`t$type`t$serialNumber`t$os`t$win11Comp`t$updates`t$drivers`t$antiVirus`t$rocksaltExists`t$clientAdmin`t$userName`t$domainName`t$processor`t$ram`t$ramType`t$diskSize`t$diskType`t`t`t$bitlocker`t$teamviewer`t$bruteForce`t$notes"
 
 # Append to the output file
 $line | Out-File -Append -FilePath $outputFile

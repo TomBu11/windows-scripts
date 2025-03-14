@@ -34,9 +34,9 @@ $type = if ((Get-WmiObject -Class Win32_ComputerSystem).PCSystemType -eq 2) {
 $serialNumber = (Get-WmiObject -Class Win32_BIOS).SerialNumber
 $os = (Get-WmiObject -Class Win32_OperatingSystem).Caption
 $win11Comp = if ($os -match "11") { "Yes" } else { "No" }
-$updates = if (Read-Host "Updates (y/N)" -eq "y") { "Yes" } else { "No" }
-$drivers = if (Read-Host "Drivers (y/N)" -eq "y") { "Yes" } else { "No" }
-$antiVirus = if (Read-Host "Antivirus (y/N)" -eq "y") { "Yes" } else { "No" }
+$updates = if ((Read-Host "Updates (y/N)") -eq "y") { "Yes" } else { "No" }
+$drivers = if ((Read-Host "Drivers (y/N)") -eq "y") { "Yes" } else { "No" }
+$antiVirus = if ((Read-Host "Antivirus (y/N)") -eq "y") { "Yes" } else { "No" }
 $rocksaltExists = "Yes"
 $clientAdmin = Read-Host "Client Admin"
 $domainName = (Get-WmiObject -Class Win32_ComputerSystem).Domain
@@ -60,7 +60,7 @@ $bruteForce = "Yes"
 $notes = Read-Host "Notes"
 
 # Prepare tab-separated line
-$line = "$auditer`t$date`t$done`t$users`tGI$gi`t$pcName`t$manufacturer`t$model`t$type`t$serialNumber`t$os`t$win11Comp`t$updates`t$drivers`t$antiVirus`t$rocksaltExists`t$clientAdmin`t$domainName`t$username`t$processor`t$ram`t$ramType`t$diskSize`t$diskType`t$bitlocker`t$teamviewer`t$bruteForce`t$notes"
+$line = "$auditer`t$date`t$done`t$users`tGI$gi`t$pcName`t$manufacturer`t$model`t$type`t$serialNumber`t$os`t$win11Comp`t$updates`t$drivers`t$antiVirus`t$rocksaltExists`t$clientAdmin`t$userName`t$domainName`t$processor`t$ram`t$ramType`t$diskSize`t$diskType`t`t`t$bitlocker`t$teamviewer`t$bruteForce`t$notes"
 
 # Append to the output file
 $line | Out-File -Append -FilePath $outputFile
