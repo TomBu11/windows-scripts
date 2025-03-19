@@ -3,14 +3,18 @@
         {
             "image": "/Rockalt_Win10_22H2_English_x64.iso",
             "template":[
-                "/script/manual_wipe.xml"
+                "/script/manual_wipe.xml",
+                "/script/auto_wipe.xml"
             ]
         },
         {
             "image": "/Rocksalt_Win11_24H2_English_x64.iso",
             "template":[
-                "/script/manual_wipe.xml"
+                "/script/manual_wipe.xml",
+                "/script/auto_wipe.xml"
             ]
         }
-    ]
+    ],
+    "VTOY_DEFAULT_MENU_MODE": "1",
+    "VTOY_BOOT_MENU_TITLE": "My Custom USB"
 }
