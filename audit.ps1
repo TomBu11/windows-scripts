@@ -216,7 +216,7 @@ if ($Admins -contains "$computerName\Rocksalt") {
 
 <# WINDOWS 11 COMPLIANT #>
 
-# if ($win11Comp -eq "No") {
+if ($win11Comp -eq "No") {
   Write-Host "Not on Windows 11" -ForegroundColor Red
 
   $HardwareReadiness = & "$exeDirectory\HardwareReadiness.ps1" 2>&1 | Out-String | ConvertFrom-Json
@@ -229,7 +229,7 @@ if ($Admins -contains "$computerName\Rocksalt") {
     $win11Comp = "No"
     Write-Host "Reason: $($HardwareReadiness.returnReason)" -ForegroundColor Red
   }
-# }
+}
 
 
 <# AUDITER INPUT #>
