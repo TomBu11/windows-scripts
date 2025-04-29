@@ -269,7 +269,7 @@ $otherBrowsers = Read-Host "Other browsers"
 $softwareValid = Read-YesNo "Software valid?"
 $notes         = Read-Host "Notes"
 
-if ($warnings.Count -gt 0 -and (Read-YesNo("Would you like to add warnings to notes? (Y/n)") -ne 'n')) {
+if ($warnings.Count -gt 0 -and (Read-Host("Would you like to add warnings to notes? (Y/n)") -ne 'n')) {
   if ($notes -ne "") {
     $notes += "; "
   }
