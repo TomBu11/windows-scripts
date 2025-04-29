@@ -133,7 +133,11 @@ $win11Comp       = if ($os -match "11") { "Yes" } else { "No" }
 $domainName      = $ComputerInfo.CsDomain
 $processor       = $ComputerInfo.CsProcessors.Name -join ', '
 $ram             = [math]::Round($ComputerInfo.CsTotalPhysicalMemory / 1GB)
-$ramType         = Convert-RamMemoryType -MemoryTypeDecimal ($RamInfo[0].SMBIOSMemoryType)
+try {
+  $ramType       = Convert-RamMemoryType -MemoryTypeDecimal ($RamInfo[0].SMBIOSMemoryType)
+} catch {
+  $ramType       = "Unknown"
+}
 $disk1Size       = [math]::Round($PhysicalDisks[0].Size / 1GB)
 $disk1Type       = "$($PhysicalDisks[0].MediaType) $($PhysicalDisks[0].BusType)"
 $disk2Size       = if ($PhysicalDisks.Count -gt 1) { [math]::Round($PhysicalDisks[1].Size / 1GB) } else { "" }
@@ -212,10 +216,10 @@ if ($Admins -contains "$computerName\Rocksalt") {
 
 <# WINDOWS 11 COMPLIANT #>
 
-if ($win11Comp -eq "No") {
+# if ($win11Comp -eq "No") {
   Write-Host "Not on Windows 11" -ForegroundColor Red
 
-  $HardwareReadiness = (& "$exeDirectory\HardwareReadiness.ps1") | ConvertFrom-Json
+  $HardwareReadiness = & "$exeDirectory\HardwareReadiness.ps1" 2>&1 | Out-String | ConvertFrom-Json
 
   if ($HardwareReadiness.returnResult -eq "CAPABLE") {
     Write-Host "Windows 11 compatible" -ForegroundColor Green
@@ -225,7 +229,7 @@ if ($win11Comp -eq "No") {
     $win11Comp = "No"
     Write-Host "Reason: $($HardwareReadiness.returnReason)" -ForegroundColor Red
   }
-}
+# }
 
 
 <# AUDITER INPUT #>
