@@ -2,10 +2,6 @@
 
 <# OPTIONS #>
 
-param (
-  [string]$auditMode = "NORMAL" # NORMAL, UNATTEND, USB
-)
-
 $outputDirectory = "C:\Rocksalt"
 $exeDirectory = Split-Path -Parent ([System.Diagnostics.Process]::GetCurrentProcess().MainModule.FileName)
 Write-Host "Script directory: $exeDirectory"
@@ -95,6 +91,8 @@ function Create-RocksaltUser {
 
 <# INITIAL SETUP #>
 
+$warnings = @()
+
 # Ensure directory exists
 if (-not (Test-Path -Path $outputDirectory)) {
     New-Item -ItemType Directory -Path $outputDirectory | Out-Null
@@ -119,6 +117,7 @@ $Users = Get-LocalGroupMember -Group "Users" | Where-Object {
 $TeamViewerInfo = Get-TeamViewerInfo
 $PhysicalDisks = Get-PhysicalDisk; if ($?) { Write-Host 'Got disks' }
 $InstalledSoftware = Get-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*, HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*; if ($?) { Write-Host 'Got software' }
+$HardwareReadiness = & "$exeDirectory\HardwareReadiness.ps1" 2>&1 | Out-String | ConvertFrom-Json; if ($?) { Write-Host 'Got hardware readiness' }
 
 
 <# AUDIT INFORMATION #>
@@ -129,7 +128,6 @@ $model           = $ComputerInfo.CsModel
 $type            = if ($ComputerInfo.CsPCSystemType -eq 2) { "Laptop" } else { "Desktop" }
 $serialNumber    = $ComputerInfo.BiosSeralNumber
 $os              = $ComputerInfo.OSName
-$win11Comp       = if ($os -match "11") { "Yes" } else { "No" }
 $domainName      = $ComputerInfo.CsDomain
 $processor       = $ComputerInfo.CsProcessors.Name -join ', '
 $ram             = [math]::Round($ComputerInfo.CsTotalPhysicalMemory / 1GB)
@@ -149,7 +147,8 @@ $firefoxVersion  = ($InstalledSoftware | Where-Object { $_.DisplayName -eq "Mozi
 $edgeVersion     = ($InstalledSoftware | Where-Object { $_.DisplayName -eq "Microsoft Edge" }).DisplayVersion
 
 if ($physicalDisks.Count -gt 2) {
-  Write-Host "More than 2 disks detected" -ForegroundColor Yellow
+  Write-Host "Warning: More than 2 disks detected" -ForegroundColor Yellow
+  $warnings += "More than 2 disks detected"
 }
 
 
@@ -194,7 +193,7 @@ if ($Admins -contains "$computerName\Rocksalt") {
   Write-Host "Local Rocksalt user exits and is administrator"
   $rocksaltExists = "Yes"
 } elseif ($Admins -match '\\Rocksalt$') {
-  Write-Host "Rocksalt is an administrator, but it's a domain account" -ForegroundColor Yellow
+  Write-Host "Warning: Rocksalt is an administrator, but it's a domain account" -ForegroundColor Yellow
 
   $rocksaltExists = Create-RocksaltUser
 } elseif (Get-LocalUser -Name "Rocksalt" -ErrorAction SilentlyContinue) {
@@ -216,50 +215,60 @@ if ($Admins -contains "$computerName\Rocksalt") {
 
 <# WINDOWS 11 COMPLIANT #>
 
-if ($win11Comp -eq "No") {
-  Write-Host "Not on Windows 11" -ForegroundColor Red
+$onWin11 = $os -match "11"
 
-  $HardwareReadiness = & "$exeDirectory\HardwareReadiness.ps1" 2>&1 | Out-String | ConvertFrom-Json
+if ($HardwareReadiness.returnResult -eq "CAPABLE") {
+  Write-Host "Windows 11 compatible" -ForegroundColor Green
+  $win11Comp = "Yes"
 
-  if ($HardwareReadiness.returnResult -eq "CAPABLE") {
-    Write-Host "Windows 11 compatible" -ForegroundColor Green
-    $win11Comp = "Yes"
-  } else {
-    Write-Host "Not Windows 11 compatible" -ForegroundColor Red
-    $win11Comp = "No"
-    Write-Host "Reason: $($HardwareReadiness.returnReason)" -ForegroundColor Red
+  if (-not $onWin11) {
+    Write-Host "Windows 11 is not installed please update" -ForegroundColor Red
+  }
+} else {
+  Write-Host "Not Windows 11 compatible" -ForegroundColor Red
+  $win11Comp = "No"
+  Write-Host "Reason: $($HardwareReadiness.returnReason)" -ForegroundColor Red
+
+  if ($onWin11) {
+    Write-Host "Warning: Windows 11 is installed but not compatible" -ForegroundColor Yellow
+    $warnings += "Windows 11 is installed but not compatible"
   }
 }
 
 
 <# AUDITER INPUT #>
 
-if ($auditMode -ne "UNATTEND") {
-  Write-Host "`n=== Audit information ===`n" -ForegroundColor DarkYellow
+Write-Host "`n=== Audit information ===`n" -ForegroundColor DarkYellow
 
-  $auditer       = Read-Host "RS (initials)"
-  $name          = Read-Host "Name"
-  $gi            = Read-Host "GI (numbers)"
-  $updates       = Read-YesNo "Updates"
-  $drivers       = Read-YesNo "Drivers"
-  $antiVirus     = Read-YesNo "Antivirus"
-  Write-Host "Admin Accounts: $Admins"
-  $clientAdmin   = Read-Host "Client Admin"
-  Write-Host "User Accounts: $Users"
-  $userName      = Read-Host "Username (Account they use)"
+$auditer       = Read-Host "RS (initials)"
+$name          = Read-Host "Name"
+$gi            = Read-Host "GI (numbers)"
+$updates       = Read-YesNo "Updates"
+$drivers       = Read-YesNo "Drivers"
+$antiVirus     = Read-YesNo "Antivirus"
+Write-Host "Admin Accounts: $Admins"
+$clientAdmin   = Read-Host "Client Admin"
+Write-Host "User Accounts: $Users"
+$userName      = Read-Host "Username (Account they use)"
 
-  Write-Host "`nChrome version: $chromeVersion`nFirefox version: $firefoxVersion`nEdge version: $edgeVersion"
+Write-Host "`nChrome version: $chromeVersion`nFirefox version: $firefoxVersion`nEdge version: $edgeVersion"
 
-  $InstalledSoftware |
-  Where-Object { $_.DisplayName -ne $null } |
-  Sort-Object DisplayName, DisplayVersion |
-  Format-Table @{Label = 'Name'; Expression = { $_.DisplayName }},
-                @{Label = 'Version'; Expression = { $_.DisplayVersion }},
-                @{Label = 'Publisher'; Expression = { $_.Publisher }},
-                @{Label = 'Install Date'; Expression = { $_.InstallDate }} -AutoSize
-  $otherBrowsers = Read-Host "Other browsers"
-  $softwareValid = Read-YesNo "Software valid?"
-  $notes         = Read-Host "Notes"
+$InstalledSoftware |
+Where-Object { $_.DisplayName -ne $null } |
+Sort-Object DisplayName, DisplayVersion |
+Format-Table @{Label = 'Name'; Expression = { $_.DisplayName }},
+              @{Label = 'Version'; Expression = { $_.DisplayVersion }},
+              @{Label = 'Publisher'; Expression = { $_.Publisher }},
+              @{Label = 'Install Date'; Expression = { $_.InstallDate }} -AutoSize
+$otherBrowsers = Read-Host "Other browsers"
+$softwareValid = Read-YesNo "Software valid?"
+$notes         = Read-Host "Notes"
+
+if ($warnings.Count -gt 0 -and (Read-YesNo("Would you like to add warnings to the notes?") -eq "Yes")) {
+  if ($notes -ne "") {
+    $notes += "; "
+  }
+  $notes += "Warnings: $($warnings -join ', ')"
 }
 
 
