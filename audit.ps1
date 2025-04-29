@@ -163,6 +163,7 @@ net accounts /lockoutduration:30
 <# TEAMVIEWER #>
 
 if (-not $TeamViewerInfo) {
+  Write-Host "`n=== Checking Teamviewer ===`n" -ForegroundColor DarkYellow 
   Write-Host "TeamViewer not installed" -ForegroundColor Red
   if ((Read-Host "Install TeamViewer? (Y/n)") -ne 'n') {
     $teamviewerInstaller = Join-Path -Path $outputDirectory -ChildPath "TeamViewer_Host_Setup.exe"
@@ -189,6 +190,8 @@ if (-not $TeamViewerInfo) {
 
 <# ROCKSALT USER #>
 
+Write-Host "`n=== Checking for Rocksalt User ===`n" -ForegroundColor DarkYellow 
+
 if ($Admins -contains "$computerName\Rocksalt") {
   Write-Host "Local Rocksalt user exits and is administrator"
   $rocksaltExists = "Yes"
@@ -213,7 +216,9 @@ if ($Admins -contains "$computerName\Rocksalt") {
 }
 
 
-<# WINDOWS 11 COMPLIANT #>
+<# WINDOWS 11 COMPATIBLE #>
+
+Write-Host "`n=== Checking Windows 11 compatibility ===`n" -ForegroundColor DarkYellow 
 
 $onWin11 = $os -match "11"
 
@@ -264,7 +269,7 @@ $otherBrowsers = Read-Host "Other browsers"
 $softwareValid = Read-YesNo "Software valid?"
 $notes         = Read-Host "Notes"
 
-if ($warnings.Count -gt 0 -and (Read-YesNo("Would you like to add warnings to the notes?") -eq "Yes")) {
+if ($warnings.Count -gt 0 -and (Read-YesNo("Would you like to add warnings to notes? (Y/n)") -ne 'n')) {
   if ($notes -ne "") {
     $notes += "; "
   }
