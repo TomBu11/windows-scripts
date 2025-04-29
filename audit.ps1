@@ -755,9 +755,9 @@ $InstalledSoftware |
 Where-Object { $_.DisplayName -ne $null } |
 Sort-Object DisplayName, DisplayVersion |
 Format-Table @{Label = 'Name'; Expression = { $_.DisplayName }},
-              @{Label = 'Version'; Expression = { $_.DisplayVersion }},
-              @{Label = 'Publisher'; Expression = { $_.Publisher }},
-              @{Label = 'Install Date'; Expression = { $_.InstallDate }} -AutoSize
+             @{Label = 'Version'; Expression = { $_.DisplayVersion }},
+             @{Label = 'Publisher'; Expression = { $_.Publisher }},
+             @{Label = 'Install Date'; Expression = { $_.InstallDate }} -AutoSize
 $otherBrowsers = Read-Host "Other browsers"
 $softwareValid = Read-YesNo "Software valid?"
 $notes         = Read-Host "Notes"
