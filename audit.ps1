@@ -495,9 +495,13 @@ $outObject | ConvertTo-Json -Compress
 
 <# OPTIONS #>
 
-$outputDirectory = "C:\Rocksalt"
-$exeDirectory = Split-Path -Parent ([System.Diagnostics.Process]::GetCurrentProcess().MainModule.FileName)
-Write-Host "Script directory: $exeDirectory"
+$rocksaltPath = "C:\Rocksalt"
+$scriptPath = Split-Path -Parent ([System.Diagnostics.Process]::GetCurrentProcess().MainModule.FileName)
+Write-Host "Script directory: $scriptPath"
+$outPaths = @(
+  $rocksaltPath
+  $scriptPath
+) | Sort-Object -Unique
 
 <# HELPER FUNCTIONS #>
 
@@ -587,11 +591,11 @@ function Create-RocksaltUser {
 $warnings = @()
 
 # Ensure directory exists
-if (-not (Test-Path -Path $outputDirectory)) {
-    New-Item -ItemType Directory -Path $outputDirectory | Out-Null
-    Write-Host "Output directory created: $outputDirectory"
+if (-not (Test-Path -Path $rocksaltPath)) {
+    New-Item -ItemType Directory -Path $rocksaltPath | Out-Null
+    Write-Host "Output directory created: $rocksaltPath"
 } else {
-    Write-Host "Output directory already exists: $outputDirectory"
+    Write-Host "Output directory already exists: $rocksaltPath"
 }
 
 # Run various 'Get' functions and save to local variables
@@ -669,7 +673,7 @@ if (-not $TeamViewerInfo) {
   Write-Host "`n=== Checking Teamviewer ===`n" -ForegroundColor DarkYellow 
   Write-Host "TeamViewer not installed" -ForegroundColor Red
   if ((Read-Host "Install TeamViewer? (Y/n)") -ne 'n') {
-    $teamviewerInstaller = Join-Path -Path $outputDirectory -ChildPath "TeamViewer_Host_Setup.exe"
+    $teamviewerInstaller = Join-Path -Path $rocksaltPath -ChildPath "TeamViewer_Host_Setup.exe"
     # Download TeamViewer
     Invoke-WebRequest -Uri "https://rocksalt.cc/tv" -OutFile $teamviewerInstaller
     if ($?) {
@@ -783,20 +787,23 @@ if ($bitlocker.ProtectionStatus -eq 1) {
   $protector = $bitlocker.KeyProtector | Where-Object { $_.KeyProtectorType -eq 'RecoveryPassword' }
 
   $filenamesToTry = @(
-      Join-Path $outputDirectory "$gi $name $ComputerName Bitlocker $($protector.KeyProtectorId).txt",
-      Join-Path $outputDirectory "$($protector.KeyProtectorId).txt"
+      "$gi $name $ComputerName Bitlocker $($protector.KeyProtectorId).txt",
+      "$($protector.KeyProtectorId).txt"
   )
 
   $bitlockerInfo = "$($protector.KeyProtectorId)`n$($protector.RecoveryPassword)"
 
-  foreach ($file in $filenamesToTry) {
-      $bitlockerInfo | Out-File -FilePath $file
-      if (Test-Path $file) {
-          Write-Host "Bitlocker saved to $file"
+  foreach ($path in $outPaths) {
+    foreach ($file in $filenamesToTry) {
+      $outputFile = Join-Path $path $file
+      $bitlockerInfo | Out-File -FilePath $outputFile
+      if (Test-Path $outputFile) {
+          Write-Host "Bitlocker saved to $outputFile"
           break
       } else {
-          Write-Host "Failed to save Bitlocker info to $file" -ForegroundColor Red
+          Write-Host "Failed to save Bitlocker info to $outputFile" -ForegroundColor Red
       }
+    }
   }
 } else {
   Write-Host "Bitlocker is not enabled" -ForegroundColor Red
@@ -866,16 +873,9 @@ $lineTable | Format-List
 
 <# SAVE OUTPUT #>
 
-$outputFile = Join-Path $outputDirectory "Audit.txt"
-
-$line | Out-File -Append -FilePath $outputFile
-
-Write-Host "System information has been appended to $outputFile"
-
-if ($outputDirectory -ne "$exeDirectory") {
-  $outputFile = Join-Path $exeDirectory "Audit.txt"
+foreach ($path in $outPaths) {
+  $outputFile = Join-Path $path "Audit.txt"
   $line | Out-File -Append -FilePath $outputFile
-
   Write-Host "System information has been appended to $outputFile"
 }
 
