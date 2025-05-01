@@ -547,8 +547,22 @@ Function Convert-RamMemoryType([Parameter(Mandatory=$true)]$MemoryTypeDecimal){
     }
 }
 
-function Read-YesNo($prompt) {
-  if ((Read-Host "$prompt (y/N)") -eq 'y') {
+function Read-Y($prompt) {
+  do {
+      $response = Read-Host "$prompt (Y/n)"
+  } while ($response -notmatch '^(y|n|)$')
+  return $response -ne 'n'
+}
+
+function Read-N($prompt) {
+  do {
+      $response = Read-Host "$prompt (y/N)"
+  } while ($response -notmatch '^(y|n|)$')
+  return $response -eq 'y'
+}
+
+function Read-No($prompt) {
+  if (Read-N($prompt)) {
     return "Yes"
   } else {
     return "No"
@@ -575,7 +589,7 @@ function Get-TeamViewerInfo {
 }
 
 function Create-RocksaltUser {
-  if ((Read-Host "Create local Rocksalt user? (Y/n)") -ne 'n') {
+  if (Read-Y "Create local Rocksalt user?") {
     $password = Read-Host "Enter password" -AsSecureString
     New-LocalUser -Name "Rocksalt" -Password $password -FullName "Rocksalt" -Description "Rocksalt" | Out-Null
     Add-LocalGroupMember -Group "Administrators" -Member "Rocksalt" | Out-Null
@@ -672,7 +686,7 @@ net accounts /lockoutduration:30
 if (-not $TeamViewerInfo) {
   Write-Host "`n=== Checking Teamviewer ===`n" -ForegroundColor DarkYellow 
   Write-Host "TeamViewer not installed" -ForegroundColor Red
-  if ((Read-Host "Install TeamViewer? (Y/n)") -ne 'n') {
+  if (Read-Y "Install TeamViewer?") {
     $teamviewerInstaller = Join-Path -Path $rocksaltPath -ChildPath "TeamViewer_Host_Setup.exe"
     # Download TeamViewer
     Invoke-WebRequest -Uri "https://rocksalt.cc/tv" -OutFile $teamviewerInstaller
@@ -709,7 +723,7 @@ if ($Admins -contains "$computerName\Rocksalt") {
 } elseif (Get-LocalUser -Name "Rocksalt" -ErrorAction SilentlyContinue) {
   Write-Host "Local Rocksalt user is not administrator" -ForegroundColor Red
 
-  if ((Read-Host "Make Rocksalt admin? (Y/n)") -ne 'n') {
+  if (Read-Y "Make Rocksalt admin?") {
     Add-LocalGroupMember -Group "Administrators" -Member "Rocksalt"
     Write "Local Rocksalt user added to Administrators group"
     $rocksaltExists = "Yes"
@@ -755,9 +769,9 @@ Write-Host "`n=== Audit information ===`n" -ForegroundColor DarkYellow
 $auditer       = Read-Host "RS (initials)"
 $name          = Read-Host "Name"
 $gi            = "GI$((Read-Host "GI") -replace '\D', '')"
-$updates       = Read-YesNo "Updates"
-$drivers       = Read-YesNo "Drivers"
-$antiVirus     = Read-YesNo "Antivirus"
+$updates       = Read-No "Updates"
+$drivers       = Read-No "Drivers"
+$antiVirus     = Read-No "Antivirus"
 Write-Host "Admin Accounts: $Admins"
 $clientAdmin   = Read-Host "Client Admin"
 Write-Host "User Accounts: $Users"
@@ -773,7 +787,7 @@ Format-Table @{Label = 'Name'; Expression = { $_.DisplayName }},
              @{Label = 'Publisher'; Expression = { $_.Publisher }},
              @{Label = 'Install Date'; Expression = { $_.InstallDate }} -AutoSize
 $otherBrowsers = Read-Host "Other browsers"
-$softwareValid = Read-YesNo "Software valid?"
+$softwareValid = Read-No "Software valid?"
 
 
 <# BITLOCKER #>
@@ -817,7 +831,7 @@ Write-Host "`n=== Output ===`n" -ForegroundColor DarkYellow
 
 $notes = Read-Host "Notes"
 
-if ($warnings.Count -gt 0 -and (Read-Host("Would you like to add warnings to notes? (Y/n)")) -ne 'n') {
+if ($warnings.Count -gt 0 -and (Read-Y "Would you like to add warnings to notes?")) {
   if ($notes -ne "") {
     $notes += "; "
   }
