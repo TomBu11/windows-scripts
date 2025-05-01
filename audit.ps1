@@ -607,7 +607,13 @@ $Users = Get-LocalGroupMember -Group "Users" | Where-Object {
   $_.Name -notmatch "^NT AUTHORITY" -and
   $_.Name -notmatch "^BUILTIN"
 } | Select-Object -ExpandProperty Name; if ($?) { Write-Host 'Got users' }
-$TeamViewerInfo = Get-TeamViewerInfo
+$TeamViewerInfo = Get-TeamViewerInfo if ($?) { Write-Host 'Got TeamViewer' }
+try {
+  $bitlocker = Get-BitLockerVolume -MountPoint "C:"
+  Write-Host "Got BitLocker"
+} catch {
+  Write-Host "Failed to retrieve BitLocker" -ForegroundColor Red
+}
 $PhysicalDisks = Get-PhysicalDisk; if ($?) { Write-Host 'Got disks' }
 $InstalledSoftware = Get-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*, HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*; if ($?) { Write-Host 'Got software' }
 $HardwareReadiness = Invoke-Expression $hardwareReadinessScript 2>&1 | Out-String | ConvertFrom-Json; if ($?) { Write-Host 'Got hardware readiness' }
@@ -759,39 +765,34 @@ Format-Table @{Label = 'Name'; Expression = { $_.DisplayName }},
              @{Label = 'Install Date'; Expression = { $_.InstallDate }} -AutoSize
 $otherBrowsers = Read-Host "Other browsers"
 $softwareValid = Read-YesNo "Software valid?"
-$notes         = Read-Host "Notes"
 
 
 <# BITLOCKER #>
 
 Write-Host "`n=== Checking Bitlocker ===`n" -ForegroundColor DarkYellow
 
-if ($bitlockerStatus -eq 1) {
+if ($bitlocker.ProtectionStatus -eq 1) {
   Write-Host "Bitlocker is enabled" -ForegroundColor Green
   $bitlockerOn = "Yes"
 
-  $bitlocker = Get-BitLockerVolume -MountPoint "C:"
-
   $protector = $bitlocker.KeyProtector | Where-Object { $_.KeyProtectorType -eq 'RecoveryPassword' }
 
-  $bitlockerDir = Join-Path $outputDirectory "$gi $name $ComputerName Bitlocker $($protector.RecoveryPassword).txt"
+  $bitlockerDir = Join-Path $outputDirectory "$gi $name $ComputerName Bitlocker $($protector.KeyProtectorId).txt"
 
-  "$($protector.RecoveryPassword)" | Out-File -FilePath $bitlockerDir
+  "$($protector.KeyProtectorId)`n$($protector.RecoveryPassword)" | Out-File -FilePath $bitlockerDir
 
   Write-Host "Bitlocker saved to $bitlockerDir"
 } else {
   Write-Host "Bitlocker is not enabled" -ForegroundColor Red
   $bitlockerOn = "No"
-  # if ((Read-Host "Enable Bitlocker? (Y/n)") -ne 'n') {
-  #   Enable-BitLocker -MountPoint $osDrive.SystemDrive -EncryptionMethod Aes256 -UsedSpaceOnlyEncryption -TpmProtector
-  #   Write-Host "Bitlocker enabled"
-  # }
 }
 
 
 <# OUTPUT #>
 
 Write-Host "`n=== Output ===`n" -ForegroundColor DarkYellow
+
+$notes = Read-Host "Notes"
 
 if ($warnings.Count -gt 0 -and (Read-Host("Would you like to add warnings to notes? (Y/n)")) -ne 'n') {
   if ($notes -ne "") {
@@ -840,7 +841,7 @@ $lineTable = [PSCustomObject]@{
 
 $line = ($lineTable.PSObject.Properties | ForEach-Object { $_.Value }) -join "`t"
 
-Write-Host "`n=== Tab-separated Line ===`n" -ForegroundColor DarkYellow
+Write-Host "`nTab-separated Line:`n" -ForegroundColor DarkYellow
 Write-Host $line
 
 Write-Host "`n=== Vertical Table ===`n" -ForegroundColor DarkYellow
