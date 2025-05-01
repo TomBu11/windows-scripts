@@ -1,5 +1,7 @@
 #Requires -RunAsAdministrator
 
+Write-Host "Audit script version 1.0.0`n" -ForegroundColor Green
+
 $hardwareReadinessScript = @'
 #=============================================================================================================================
 #
@@ -588,7 +590,7 @@ function Get-TeamViewerInfo {
   return $null
 }
 
-function Create-RocksaltUser {
+function Add-RocksaltUser {
   if (Read-Y "Create local Rocksalt user?") {
     $password = Read-Host "Enter password" -AsSecureString
     New-LocalUser -Name "Rocksalt" -Password $password -FullName "Rocksalt" -Description "Rocksalt" | Out-Null
@@ -719,7 +721,7 @@ if ($Admins -contains "$computerName\Rocksalt") {
 } elseif ($Admins -match '\\Rocksalt$') {
   Write-Host "Warning: Rocksalt is an administrator, but it's a domain account" -ForegroundColor Yellow
 
-  $rocksaltExists = Create-RocksaltUser
+  $rocksaltExists = Add-RocksaltUser
 } elseif (Get-LocalUser -Name "Rocksalt" -ErrorAction SilentlyContinue) {
   Write-Host "Local Rocksalt user is not administrator" -ForegroundColor Red
 
@@ -733,7 +735,7 @@ if ($Admins -contains "$computerName\Rocksalt") {
 } else {
   Write-Host "Local Rocksalt user does not exist" -ForegroundColor Red
 
-  $rocksaltExists = Create-RocksaltUser
+  $rocksaltExists = Add-RocksaltUser
 }
 
 
