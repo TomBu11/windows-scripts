@@ -623,17 +623,16 @@ $serialNumber    = $ComputerInfo.BiosSeralNumber
 $os              = $ComputerInfo.OSName
 $domainName      = $ComputerInfo.CsDomain
 $processor       = $ComputerInfo.CsProcessors.Name -join ', '
-$ram             = [math]::Round($ComputerInfo.CsTotalPhysicalMemory / 1GB)
+$ram             = "$([math]::Round($ComputerInfo.CsTotalPhysicalMemory / 1GB))GB"
 try {
   $ramType       = Convert-RamMemoryType -MemoryTypeDecimal ($RamInfo[0].SMBIOSMemoryType)
 } catch {
   $ramType       = "Unknown"
 }
-$disk1Size       = [math]::Round($PhysicalDisks[0].Size / 1GB)
+$disk1Size       = "$([math]::Round($PhysicalDisks[0].Size / 1GB))GB"
 $disk1Type       = "$($PhysicalDisks[0].MediaType) $($PhysicalDisks[0].BusType)"
-$disk2Size       = if ($PhysicalDisks.Count -gt 1) { [math]::Round($PhysicalDisks[1].Size / 1GB) } else { "" }
+$disk2Size       = if ($PhysicalDisks.Count -gt 1) { "$([math]::Round($PhysicalDisks[1].Size / 1GB))GB" } else { "" }
 $disk2Type       = if ($PhysicalDisks.Count -gt 1) { "$($PhysicalDisks[1].MediaType) $($PhysicalDisks[1].BusType)" } else { "" }
-$bitlocker       = if ($bitlockerStatus -eq 1) { "Yes" } else { "No" }
 $teamViewer      = $TeamViewerInfo.ClientID
 $chromeVersion   = ($InstalledSoftware | Where-Object { $_.DisplayName -eq "Google Chrome" }).DisplayVersion
 $firefoxVersion  = ($InstalledSoftware | Where-Object { $_.DisplayName -eq "Mozilla Firefox" }).DisplayVersion
@@ -740,7 +739,7 @@ Write-Host "`n=== Audit information ===`n" -ForegroundColor DarkYellow
 
 $auditer       = Read-Host "RS (initials)"
 $name          = Read-Host "Name"
-$gi            = Read-Host "GI (numbers)"
+$gi            = "GI$((Read-Host "GI") -replace '\D', '')"
 $updates       = Read-YesNo "Updates"
 $drivers       = Read-YesNo "Drivers"
 $antiVirus     = Read-YesNo "Antivirus"
@@ -762,22 +761,47 @@ $otherBrowsers = Read-Host "Other browsers"
 $softwareValid = Read-YesNo "Software valid?"
 $notes         = Read-Host "Notes"
 
-if ($warnings.Count -gt 0 -and (Read-Host("Would you like to add warnings to notes? (Y/n)") -ne 'n')) {
+
+<# BITLOCKER #>
+
+Write-Host "`n=== Checking Bitlocker ===`n" -ForegroundColor DarkYellow
+
+if ($bitlockerStatus -eq 1) {
+  Write-Host "Bitlocker is enabled" -ForegroundColor Green
+  $bitlockerOn = "Yes"
+
+  $bitlocker = Get-BitLockerVolume -MountPoint "C:"
+
+  $protector = $bitlocker.KeyProtector | Where-Object { $_.KeyProtectorType -eq 'RecoveryPassword' }
+
+  "$($protector.RecoveryPassword)" | Out-File -FilePath "$outputDirectory\$gi $name $ComputerName Bitlocker $($protector.RecoveryPassword).txt"
+} else {
+  Write-Host "Bitlocker is not enabled" -ForegroundColor Red
+  $bitlockerOn = "No"
+  # if ((Read-Host "Enable Bitlocker? (Y/n)") -ne 'n') {
+  #   Enable-BitLocker -MountPoint $osDrive.SystemDrive -EncryptionMethod Aes256 -UsedSpaceOnlyEncryption -TpmProtector
+  #   Write-Host "Bitlocker enabled"
+  # }
+}
+
+
+<# OUTPUT #>
+
+Write-Host "`n=== Output ===`n" -ForegroundColor DarkYellow
+
+if ($warnings.Count -gt 0 -and (Read-Host("Would you like to add warnings to notes? (Y/n)")) -ne 'n') {
   if ($notes -ne "") {
     $notes += "; "
   }
   $notes += "Warnings: $($warnings -join ', ')"
 }
 
-
-<# OUTPUT #>
-
 $lineTable = [PSCustomObject]@{
   Auditer         = $auditer
   Date            = $date
   Done            = "Part"
   Users           = $name
-  GI              = "GI$gi"
+  GI              = $gi
   PCName          = $ComputerName
   Manufacturer    = $manufacturer
   Model           = $model
@@ -793,13 +817,13 @@ $lineTable = [PSCustomObject]@{
   UserName        = $userName
   DomainName      = $domainName
   Processor       = $processor
-  RAM             = "$ram GB"
+  RAM             = $ram
   RAMType         = $ramType
-  DiskSize        = "$disk1Size GB"
+  DiskSize        = $disk1Size
   DiskType        = $disk1Type
-  Disk2Size       = "$disk2Size GB"
+  Disk2Size       = $disk2Size
   Disk2Type       = $disk2Type
-  Bitlocker       = $bitlocker
+  Bitlocker       = $bitlockerOn
   TeamViewer      = $teamviewer
   BruteForce      = "Yes"
   ChromeVersion   = $chromeVersion
