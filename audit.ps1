@@ -1,6 +1,6 @@
 #Requires -RunAsAdministrator
 
-Write-Host "Audit script version 1.0.0`n" -ForegroundColor Green
+Write-Host "Audit script version 1.1.0`n" -ForegroundColor Green
 
 $hardwareReadinessScript = @'
 #=============================================================================================================================
@@ -501,9 +501,9 @@ $rocksaltPath = "C:\Rocksalt"
 $scriptPath = Split-Path -Parent ([System.Diagnostics.Process]::GetCurrentProcess().MainModule.FileName)
 Write-Host "Script directory: $scriptPath"
 $outPaths = @(
-  $rocksaltPath
   $scriptPath
-) | Sort-Object -Unique
+  $rocksaltPath
+) | Select-Object -Unique
 
 <# HELPER FUNCTIONS #>
 
@@ -891,20 +891,22 @@ $lineTable | Format-List
 
 <# SAVE OUTPUT #>
 
+Write-Host "`n=== Saving output ===`n" -ForegroundColor DarkYellow
+
 foreach ($path in $outPaths) {
-  $outputFile = Join-Path $path "Audit.txt"
-  $line | Out-File -Append -FilePath $outputFile
-  Write-Host "System information has been appended to $outputFile"
+  $auditFile = Join-Path $path "Audit.txt"
+  $line | Out-File -Append -FilePath $auditFile
+  Write-Host "Audit information has been appended to $auditFile"
 
   foreach ($file in $bitlockerFilenames) {
-    $outputFile = Join-Path $path $file
-    $bitlockerInfo | Out-File -FilePath $outputFile
-    if (Test-Path $outputFile) {
-      Write-Host "Bitlocker saved to $outputFile"
+    $bitlockerFile = Join-Path $path $file
+    $bitlockerInfo | Out-File -FilePath $bitlockerFile
+    if (Test-Path $bitlockerFile) {
+      Write-Host "Bitlocker saved to $bitlockerFile"
       break
     }
     else {
-      Write-Host "Failed to save Bitlocker info to $outputFile" -ForegroundColor Red
+      Write-Host "Failed to save Bitlocker info to $bitlockerFile" -ForegroundColor Red
     }
   }
 }
