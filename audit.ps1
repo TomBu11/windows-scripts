@@ -808,32 +808,20 @@ $softwareValid = Read-No "Software valid?"
 
 Write-Host "`n=== Checking Bitlocker ===`n" -ForegroundColor DarkYellow
 
+$bitlockerFilenames = @()
+
 if ($bitlocker.ProtectionStatus -eq 1) {
   Write-Host "Bitlocker is enabled" -ForegroundColor Green
   $bitlockerOn = "Yes"
 
   $protector = $bitlocker.KeyProtector | Where-Object { $_.KeyProtectorType -eq 'RecoveryPassword' }
 
-  $filenamesToTry = @(
+  $bitlockerFilenames = @(
     "$gi $name $ComputerName Bitlocker $($protector.KeyProtectorId).txt",
     "$($protector.KeyProtectorId).txt"
   )
 
   $bitlockerInfo = "$($protector.KeyProtectorId)`n$($protector.RecoveryPassword)"
-
-  foreach ($path in $outPaths) {
-    foreach ($file in $filenamesToTry) {
-      $outputFile = Join-Path $path $file
-      $bitlockerInfo | Out-File -FilePath $outputFile
-      if (Test-Path $outputFile) {
-        Write-Host "Bitlocker saved to $outputFile"
-        break
-      }
-      else {
-        Write-Host "Failed to save Bitlocker info to $outputFile" -ForegroundColor Red
-      }
-    }
-  }
 }
 else {
   Write-Host "Bitlocker is not enabled" -ForegroundColor Red
@@ -907,6 +895,18 @@ foreach ($path in $outPaths) {
   $outputFile = Join-Path $path "Audit.txt"
   $line | Out-File -Append -FilePath $outputFile
   Write-Host "System information has been appended to $outputFile"
+
+  foreach ($file in $bitlockerFilenames) {
+    $outputFile = Join-Path $path $file
+    $bitlockerInfo | Out-File -FilePath $outputFile
+    if (Test-Path $outputFile) {
+      Write-Host "Bitlocker saved to $outputFile"
+      break
+    }
+    else {
+      Write-Host "Failed to save Bitlocker info to $outputFile" -ForegroundColor Red
+    }
+  }
 }
 
 Read-Host -Prompt "Press Enter to exit"
