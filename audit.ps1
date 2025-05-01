@@ -1,6 +1,6 @@
 #Requires -RunAsAdministrator
 
-Write-Host "Audit script version 1.1.0`n" -ForegroundColor Green
+Write-Host "Audit script version 1.0.1`n" -ForegroundColor Green
 
 $hardwareReadinessScript = @'
 #=============================================================================================================================
