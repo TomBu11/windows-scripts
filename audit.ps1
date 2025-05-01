@@ -774,7 +774,11 @@ if ($bitlockerStatus -eq 1) {
 
   $protector = $bitlocker.KeyProtector | Where-Object { $_.KeyProtectorType -eq 'RecoveryPassword' }
 
-  "$($protector.RecoveryPassword)" | Out-File -FilePath "$outputDirectory\$gi $name $ComputerName Bitlocker $($protector.RecoveryPassword).txt"
+  $bitlockerDir = Join-Path $outputDirectory "$gi $name $ComputerName Bitlocker $($protector.RecoveryPassword).txt"
+
+  "$($protector.RecoveryPassword)" | Out-File -FilePath $bitlockerDir
+
+  Write-Host "Bitlocker saved to $bitlockerDir"
 } else {
   Write-Host "Bitlocker is not enabled" -ForegroundColor Red
   $bitlockerOn = "No"
