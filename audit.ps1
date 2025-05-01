@@ -508,57 +508,57 @@ $outPaths = @(
 <# HELPER FUNCTIONS #>
 
 # (from https://www.dmtf.org/sites/default/files/standards/documents/DSP0134_3.4.0a.pdf)
-Function Convert-RamMemoryType([Parameter(Mandatory=$true)]$MemoryTypeDecimal){
-    switch ($MemoryTypeDecimal){
-      00 {'Unknown'}
-      01 {'Other'}
-      02 {'DRAM'}
-      03 {'Synchronous DRAM'}
-      04 {'Cache DRAM'}
-      05 {'EDO'}
-      06 {'EDRAM'}
-      07 {'VRAM'}
-      08 {'SRAM'}
-      09 {'RAM'}
-      10 {'ROM'}
-      11 {'FLASH'}
-      12 {'EEPROM'}
-      13 {'FEPROM'}
-      14 {'EPROM'}
-      15 {'CDRAM'}
-      16 {'3DRAM'}
-      17 {'SDRAM'}
-      18 {'SGRAM'}
-      19 {'RDRAM'}
-      20 {'DDR'}
-      21 {'DDR2'}
-      22 {'DDR FB-DIMM'}
-      24 {'DDR3'}
-      25 {'FBD2'}
-      26 {'DDR4'}
-      27 {'LPDDR'}
-      28 {'LPDDR2'}
-      29 {'LPDDR3'}
-      30 {'LPDDR4'}
-      31 {'Logical non-volatile device'}
-      32 {'HBM'}
-      33 {'HBM2'}
-      34 {'DDR5'}
-      35 {'LPDDR5'}
-      Default {'Unknown'}
-    }
+Function Convert-RamMemoryType([Parameter(Mandatory = $true)]$MemoryTypeDecimal) {
+  switch ($MemoryTypeDecimal) {
+    00 { 'Unknown' }
+    01 { 'Other' }
+    02 { 'DRAM' }
+    03 { 'Synchronous DRAM' }
+    04 { 'Cache DRAM' }
+    05 { 'EDO' }
+    06 { 'EDRAM' }
+    07 { 'VRAM' }
+    08 { 'SRAM' }
+    09 { 'RAM' }
+    10 { 'ROM' }
+    11 { 'FLASH' }
+    12 { 'EEPROM' }
+    13 { 'FEPROM' }
+    14 { 'EPROM' }
+    15 { 'CDRAM' }
+    16 { '3DRAM' }
+    17 { 'SDRAM' }
+    18 { 'SGRAM' }
+    19 { 'RDRAM' }
+    20 { 'DDR' }
+    21 { 'DDR2' }
+    22 { 'DDR FB-DIMM' }
+    24 { 'DDR3' }
+    25 { 'FBD2' }
+    26 { 'DDR4' }
+    27 { 'LPDDR' }
+    28 { 'LPDDR2' }
+    29 { 'LPDDR3' }
+    30 { 'LPDDR4' }
+    31 { 'Logical non-volatile device' }
+    32 { 'HBM' }
+    33 { 'HBM2' }
+    34 { 'DDR5' }
+    35 { 'LPDDR5' }
+    Default { 'Unknown' }
+  }
 }
 
 function Read-Y($prompt) {
   do {
-      $response = Read-Host "$prompt (Y/n)"
+    $response = Read-Host "$prompt (Y/n)"
   } while ($response -notmatch '^(y|n|)$')
   return $response -ne 'n'
 }
 
 function Read-N($prompt) {
   do {
-      $response = Read-Host "$prompt (y/N)"
+    $response = Read-Host "$prompt (y/N)"
   } while ($response -notmatch '^(y|n|)$')
   return $response -eq 'y'
 }
@@ -566,15 +566,16 @@ function Read-N($prompt) {
 function Read-No($prompt) {
   if (Read-N($prompt)) {
     return "Yes"
-  } else {
+  }
+  else {
     return "No"
   }
 }
 
 function Get-TeamViewerInfo {
   $possiblePaths = @(
-      "HKLM:\SOFTWARE\TeamViewer",
-      "HKLM:\SOFTWARE\Wow6432Node\TeamViewer"
+    "HKLM:\SOFTWARE\TeamViewer",
+    "HKLM:\SOFTWARE\Wow6432Node\TeamViewer"
   )
 
   $TeamViewerInfo = $null
@@ -608,10 +609,11 @@ $warnings = @()
 
 # Ensure directory exists
 if (-not (Test-Path -Path $rocksaltPath)) {
-    New-Item -ItemType Directory -Path $rocksaltPath | Out-Null
-    Write-Host "Output directory created: $rocksaltPath"
-} else {
-    Write-Host "Output directory already exists: $rocksaltPath"
+  New-Item -ItemType Directory -Path $rocksaltPath | Out-Null
+  Write-Host "Output directory created: $rocksaltPath"
+}
+else {
+  Write-Host "Output directory already exists: $rocksaltPath"
 }
 
 # Run various 'Get' functions and save to local variables
@@ -631,7 +633,8 @@ $TeamViewerInfo = Get-TeamViewerInfo if ($?) { Write-Host 'Got TeamViewer' }
 try {
   $bitlocker = Get-BitLockerVolume -MountPoint "C:"
   Write-Host "Got BitLocker"
-} catch {
+}
+catch {
   Write-Host "Failed to retrieve BitLocker" -ForegroundColor Red
 }
 $PhysicalDisks = Get-PhysicalDisk; if ($?) { Write-Host 'Got disks' }
@@ -641,33 +644,35 @@ $HardwareReadiness = Invoke-Expression $hardwareReadinessScript 2>&1 | Out-Strin
 
 <# AUDIT INFORMATION #>
 
-$date            = Get-Date -Format "yyyy-MM-dd"
-$manufacturer    = $ComputerInfo.CsManufacturer
-$model           = $ComputerInfo.CsModel
-$type            = if ($ComputerInfo.CsPCSystemType -eq 2) { "Laptop" } else { "Desktop" }
-$serialNumber    = $ComputerInfo.BiosSeralNumber
-$os              = $ComputerInfo.OSName
-$domainName      = $ComputerInfo.CsDomain
-$processor       = $ComputerInfo.CsProcessors.Name -join ', '
-$ram             = "$([math]::Round($ComputerInfo.CsTotalPhysicalMemory / 1GB))GB"
+$date = Get-Date -Format "yyyy-MM-dd"
+$manufacturer = $ComputerInfo.CsManufacturer
+$model = $ComputerInfo.CsModel
+$type = if ($ComputerInfo.CsPCSystemType -eq 2) { "Laptop" } else { "Desktop" }
+$serialNumber = $ComputerInfo.BiosSeralNumber
+$os = $ComputerInfo.OSName
+$domainName = $ComputerInfo.CsDomain
+$processor = $ComputerInfo.CsProcessors.Name -join ', '
+$ram = "$([math]::Round($ComputerInfo.CsTotalPhysicalMemory / 1GB))GB"
 try {
-  $ramType       = Convert-RamMemoryType -MemoryTypeDecimal ($RamInfo[0].SMBIOSMemoryType)
-} catch {
-  $ramType       = "Unknown"
+  $ramType = Convert-RamMemoryType -MemoryTypeDecimal ($RamInfo[0].SMBIOSMemoryType)
 }
-$disk1Size       = "$([math]::Round($PhysicalDisks[0].Size / 1GB))GB"
-$disk1Type       = "$($PhysicalDisks[0].MediaType) $($PhysicalDisks[0].BusType)"
+catch {
+  $ramType = "Unknown"
+}
+$disk1Size = "$([math]::Round($PhysicalDisks[0].Size / 1GB))GB"
+$disk1Type = "$($PhysicalDisks[0].MediaType) $($PhysicalDisks[0].BusType)"
 if ($PhysicalDisks.Count -gt 1) { 
-  $disk2Size     = "$([math]::Round($PhysicalDisks[1].Size / 1GB))GB"
-  $disk2Type     = "$($PhysicalDisks[1].MediaType) $($PhysicalDisks[1].BusType)"
-} else {
-  $disk2Size     = "N/A"
-  $disk2Type     = "N/A"
+  $disk2Size = "$([math]::Round($PhysicalDisks[1].Size / 1GB))GB"
+  $disk2Type = "$($PhysicalDisks[1].MediaType) $($PhysicalDisks[1].BusType)"
 }
-$teamViewer      = $TeamViewerInfo.ClientID
-$chromeVersion   = ($InstalledSoftware | Where-Object { $_.DisplayName -eq "Google Chrome" }).DisplayVersion
-$firefoxVersion  = ($InstalledSoftware | Where-Object { $_.DisplayName -eq "Mozilla Firefox" }).DisplayVersion
-$edgeVersion     = ($InstalledSoftware | Where-Object { $_.DisplayName -eq "Microsoft Edge" }).DisplayVersion
+else {
+  $disk2Size = "N/A"
+  $disk2Type = "N/A"
+}
+$teamViewer = $TeamViewerInfo.ClientID
+$chromeVersion = ($InstalledSoftware | Where-Object { $_.DisplayName -eq "Google Chrome" }).DisplayVersion
+$firefoxVersion = ($InstalledSoftware | Where-Object { $_.DisplayName -eq "Mozilla Firefox" }).DisplayVersion
+$edgeVersion = ($InstalledSoftware | Where-Object { $_.DisplayName -eq "Microsoft Edge" }).DisplayVersion
 
 if ($physicalDisks.Count -gt 2) {
   Write-Host "Warning: More than 2 disks detected" -ForegroundColor Yellow
@@ -701,10 +706,12 @@ if (-not $TeamViewerInfo) {
       if ($?) {
         Write-Host "TeamViewer installed successfully"
         $TeamViewerInfo = Get-TeamViewerInfo
-      } else {
+      }
+      else {
         Write-Host "Failed to install TeamViewer" -ForegroundColor Red
       }
-    } else {
+    }
+    else {
       Write-Host "Failed to download TeamViewer installer" -ForegroundColor Red
     }
   }
@@ -718,21 +725,25 @@ Write-Host "`n=== Checking for Rocksalt User ===`n" -ForegroundColor DarkYellow
 if ($Admins -contains "$computerName\Rocksalt") {
   Write-Host "Local Rocksalt user exits and is administrator"
   $rocksaltExists = "Yes"
-} elseif ($Admins -match '\\Rocksalt$') {
+}
+elseif ($Admins -match '\\Rocksalt$') {
   Write-Host "Warning: Rocksalt is an administrator, but it's a domain account" -ForegroundColor Yellow
 
   $rocksaltExists = Add-RocksaltUser
-} elseif (Get-LocalUser -Name "Rocksalt" -ErrorAction SilentlyContinue) {
+}
+elseif (Get-LocalUser -Name "Rocksalt" -ErrorAction SilentlyContinue) {
   Write-Host "Local Rocksalt user is not administrator" -ForegroundColor Red
 
   if (Read-Y "Make Rocksalt admin?") {
     Add-LocalGroupMember -Group "Administrators" -Member "Rocksalt"
     Write "Local Rocksalt user added to Administrators group"
     $rocksaltExists = "Yes"
-  } else {
+  }
+  else {
     $rocksaltExists = "No"
   }
-} else {
+}
+else {
   Write-Host "Local Rocksalt user does not exist" -ForegroundColor Red
 
   $rocksaltExists = Add-RocksaltUser
@@ -752,7 +763,8 @@ if ($HardwareReadiness.returnResult -eq "CAPABLE") {
   if (-not $onWin11) {
     Write-Host "Windows 11 is not installed please update" -ForegroundColor Red
   }
-} else {
+}
+else {
   Write-Host "Not Windows 11 compatible" -ForegroundColor Red
   $win11Comp = "No"
   Write-Host "Reason: $($HardwareReadiness.returnReason)" -ForegroundColor Red
@@ -768,26 +780,26 @@ if ($HardwareReadiness.returnResult -eq "CAPABLE") {
 
 Write-Host "`n=== Audit information ===`n" -ForegroundColor DarkYellow
 
-$auditer       = Read-Host "RS (initials)"
-$name          = Read-Host "Name"
-$gi            = "GI$((Read-Host "GI") -replace '\D', '')"
-$updates       = Read-No "Updates"
-$drivers       = Read-No "Drivers"
-$antiVirus     = Read-No "Antivirus"
+$auditer = Read-Host "RS (initials)"
+$name = Read-Host "Name"
+$gi = "GI$((Read-Host "GI") -replace '\D', '')"
+$updates = Read-No "Updates"
+$drivers = Read-No "Drivers"
+$antiVirus = Read-No "Antivirus"
 Write-Host "Admin Accounts: $Admins"
-$clientAdmin   = Read-Host "Client Admin"
+$clientAdmin = Read-Host "Client Admin"
 Write-Host "User Accounts: $Users"
-$userName      = Read-Host "Username (Account they use)"
+$userName = Read-Host "Username (Account they use)"
 
 Write-Host "`nChrome version: $chromeVersion`nFirefox version: $firefoxVersion`nEdge version: $edgeVersion"
 
 $InstalledSoftware |
 Where-Object { $_.DisplayName -ne $null } |
 Sort-Object DisplayName, DisplayVersion |
-Format-Table @{Label = 'Name'; Expression = { $_.DisplayName }},
-             @{Label = 'Version'; Expression = { $_.DisplayVersion }},
-             @{Label = 'Publisher'; Expression = { $_.Publisher }},
-             @{Label = 'Install Date'; Expression = { $_.InstallDate }} -AutoSize
+Format-Table @{Label = 'Name'; Expression = { $_.DisplayName } },
+@{Label = 'Version'; Expression = { $_.DisplayVersion } },
+@{Label = 'Publisher'; Expression = { $_.Publisher } },
+@{Label = 'Install Date'; Expression = { $_.InstallDate } } -AutoSize
 $otherBrowsers = Read-Host "Other browsers"
 $softwareValid = Read-No "Software valid?"
 
@@ -803,8 +815,8 @@ if ($bitlocker.ProtectionStatus -eq 1) {
   $protector = $bitlocker.KeyProtector | Where-Object { $_.KeyProtectorType -eq 'RecoveryPassword' }
 
   $filenamesToTry = @(
-      "$gi $name $ComputerName Bitlocker $($protector.KeyProtectorId).txt",
-      "$($protector.KeyProtectorId).txt"
+    "$gi $name $ComputerName Bitlocker $($protector.KeyProtectorId).txt",
+    "$($protector.KeyProtectorId).txt"
   )
 
   $bitlockerInfo = "$($protector.KeyProtectorId)`n$($protector.RecoveryPassword)"
@@ -814,14 +826,16 @@ if ($bitlocker.ProtectionStatus -eq 1) {
       $outputFile = Join-Path $path $file
       $bitlockerInfo | Out-File -FilePath $outputFile
       if (Test-Path $outputFile) {
-          Write-Host "Bitlocker saved to $outputFile"
-          break
-      } else {
-          Write-Host "Failed to save Bitlocker info to $outputFile" -ForegroundColor Red
+        Write-Host "Bitlocker saved to $outputFile"
+        break
+      }
+      else {
+        Write-Host "Failed to save Bitlocker info to $outputFile" -ForegroundColor Red
       }
     }
   }
-} else {
+}
+else {
   Write-Host "Bitlocker is not enabled" -ForegroundColor Red
   $bitlockerOn = "No"
 }
