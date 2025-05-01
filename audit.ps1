@@ -637,8 +637,13 @@ try {
 }
 $disk1Size       = "$([math]::Round($PhysicalDisks[0].Size / 1GB))GB"
 $disk1Type       = "$($PhysicalDisks[0].MediaType) $($PhysicalDisks[0].BusType)"
-$disk2Size       = if ($PhysicalDisks.Count -gt 1) { "$([math]::Round($PhysicalDisks[1].Size / 1GB))GB" } else { "" }
-$disk2Type       = if ($PhysicalDisks.Count -gt 1) { "$($PhysicalDisks[1].MediaType) $($PhysicalDisks[1].BusType)" } else { "" }
+if ($PhysicalDisks.Count -gt 1) { 
+  $disk2Size     = "$([math]::Round($PhysicalDisks[1].Size / 1GB))GB"
+  $disk2Type     = "$($PhysicalDisks[1].MediaType) $($PhysicalDisks[1].BusType)"
+} else {
+  $disk2Size     = "N/A"
+  $disk2Type     = "N/A"
+}
 $teamViewer      = $TeamViewerInfo.ClientID
 $chromeVersion   = ($InstalledSoftware | Where-Object { $_.DisplayName -eq "Google Chrome" }).DisplayVersion
 $firefoxVersion  = ($InstalledSoftware | Where-Object { $_.DisplayName -eq "Mozilla Firefox" }).DisplayVersion
@@ -777,11 +782,22 @@ if ($bitlocker.ProtectionStatus -eq 1) {
 
   $protector = $bitlocker.KeyProtector | Where-Object { $_.KeyProtectorType -eq 'RecoveryPassword' }
 
-  $bitlockerDir = Join-Path $outputDirectory "$gi $name $ComputerName Bitlocker $($protector.KeyProtectorId).txt"
+  $filenamesToTry = @(
+      Join-Path $outputDirectory "$gi $name $ComputerName Bitlocker $($protector.KeyProtectorId).txt",
+      Join-Path $outputDirectory "$($protector.KeyProtectorId).txt"
+  )
 
-  "$($protector.KeyProtectorId)`n$($protector.RecoveryPassword)" | Out-File -FilePath $bitlockerDir
+  $bitlockerInfo = "$($protector.KeyProtectorId)`n$($protector.RecoveryPassword)"
 
-  Write-Host "Bitlocker saved to $bitlockerDir"
+  foreach ($file in $filenamesToTry) {
+      $bitlockerInfo | Out-File -FilePath $file
+      if (Test-Path $file) {
+          Write-Host "Bitlocker saved to $file"
+          break
+      } else {
+          Write-Host "Failed to save Bitlocker info to $file" -ForegroundColor Red
+      }
+  }
 } else {
   Write-Host "Bitlocker is not enabled" -ForegroundColor Red
   $bitlockerOn = "No"
