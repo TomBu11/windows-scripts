@@ -1,3 +1,5 @@
 *.iso
 *.tmp
 windows_apps
+test.ps1
+test.exe
