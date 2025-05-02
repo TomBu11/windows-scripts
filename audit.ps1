@@ -1,6 +1,21 @@
 #Requires -RunAsAdministrator
 
-Write-Host "Audit script version 1.0.1`n" -ForegroundColor Green
+param (
+  [ValidateSet("NORMAL", "UNATTEND", "USB")]
+  [string]$AuditMode = "NORMAL",
+  [string]$auditer = "UNATTEND",
+  [string]$name = "UNATTEND",
+  [string]$gi = "UNATTEND",
+  [string]$updates = "UNATTEND",
+  [string]$drivers = "UNATTEND",
+  [string]$antiVirus = "UNATTEND",
+  [string]$clientAdmin = "UNATTEND",
+  [string]$userName = "UNATTEND",
+  [string]$otherBrowsers = "UNATTEND",
+  [string]$softwareValid = "UNATTEND"
+)
+
+Write-Host "Audit script version 1.0.2`n" -ForegroundColor Green
 
 $hardwareReadinessScript = @'
 #=============================================================================================================================
@@ -498,12 +513,20 @@ $outObject | ConvertTo-Json -Compress
 <# OPTIONS #>
 
 $rocksaltPath = "C:\Rocksalt"
-$scriptPath = Split-Path -Parent ([System.Diagnostics.Process]::GetCurrentProcess().MainModule.FileName)
-Write-Host "Script directory: $scriptPath"
-$outPaths = @(
-  $scriptPath
-  $rocksaltPath
-) | Select-Object -Unique
+
+if ($AuditMode -eq "UNATTEND") {
+  $outPaths = @(
+    $rocksaltPath
+  )
+}
+else {
+  $scriptPath = Split-Path -Parent ([System.Diagnostics.Process]::GetCurrentProcess().MainModule.FileName)
+  Write-Host "Script directory: $scriptPath"
+  $outPaths = @(
+    $scriptPath
+    $rocksaltPath
+  ) | Select-Object -Unique
+}
 
 <# HELPER FUNCTIONS #>
 
@@ -592,7 +615,7 @@ function Get-TeamViewerInfo {
 }
 
 function Add-RocksaltUser {
-  if (Read-Y "Create local Rocksalt user?") {
+  if ($AuditMode -ne "UNATTEND" -and (Read-Y "Create local Rocksalt user?")) {
     $password = Read-Host "Enter password" -AsSecureString
     New-LocalUser -Name "Rocksalt" -Password $password -FullName "Rocksalt" -Description "Rocksalt" | Out-Null
     Add-LocalGroupMember -Group "Administrators" -Member "Rocksalt" | Out-Null
@@ -693,7 +716,7 @@ net accounts /lockoutduration:30
 if (-not $TeamViewerInfo) {
   Write-Host "`n=== Checking Teamviewer ===`n" -ForegroundColor DarkYellow 
   Write-Host "TeamViewer not installed" -ForegroundColor Red
-  if (Read-Y "Install TeamViewer?") {
+  if ($AuditMode -eq "UNATTEND" -or (Read-Y "Install TeamViewer?")) {
     $teamviewerInstaller = Join-Path -Path $rocksaltPath -ChildPath "TeamViewer_Host_Setup.exe"
     # Download TeamViewer
     Invoke-WebRequest -Uri "https://rocksalt.cc/tv" -OutFile $teamviewerInstaller
@@ -734,7 +757,7 @@ elseif ($Admins -match '\\Rocksalt$') {
 elseif (Get-LocalUser -Name "Rocksalt" -ErrorAction SilentlyContinue) {
   Write-Host "Local Rocksalt user is not administrator" -ForegroundColor Red
 
-  if (Read-Y "Make Rocksalt admin?") {
+  if ($AuditMode -eq "UNATTEND" -or (Read-Y "Make Rocksalt admin?")) {
     Add-LocalGroupMember -Group "Administrators" -Member "Rocksalt"
     Write "Local Rocksalt user added to Administrators group"
     $rocksaltExists = "Yes"
@@ -778,30 +801,32 @@ else {
 
 <# AUDITER INPUT #>
 
-Write-Host "`n=== Audit information ===`n" -ForegroundColor DarkYellow
+if ($AuditMode -ne "UNATTEND") {
+  Write-Host "`n=== Audit information ===`n" -ForegroundColor DarkYellow
 
-$auditer = Read-Host "RS (initials)"
-$name = Read-Host "Name"
-$gi = "GI$((Read-Host "GI") -replace '\D', '')"
-$updates = Read-No "Updates"
-$drivers = Read-No "Drivers"
-$antiVirus = Read-No "Antivirus"
-Write-Host "Admin Accounts: $Admins"
-$clientAdmin = Read-Host "Client Admin"
-Write-Host "User Accounts: $Users"
-$userName = Read-Host "Username (Account they use)"
+  $auditer = Read-Host "RS (initials)"
+  $name = Read-Host "Name"
+  $gi = "GI$((Read-Host "GI") -replace '\D', '')"
+  $updates = Read-No "Updates"
+  $drivers = Read-No "Drivers"
+  $antiVirus = Read-No "Antivirus"
+  Write-Host "Admin Accounts: $Admins"
+  $clientAdmin = Read-Host "Client Admin"
+  Write-Host "User Accounts: $Users"
+  $userName = Read-Host "Username (Account they use)"
 
-Write-Host "`nChrome version: $chromeVersion`nFirefox version: $firefoxVersion`nEdge version: $edgeVersion"
+  Write-Host "`nChrome version: $chromeVersion`nFirefox version: $firefoxVersion`nEdge version: $edgeVersion"
 
-$InstalledSoftware |
-Where-Object { $_.DisplayName -ne $null } |
-Sort-Object DisplayName, DisplayVersion |
-Format-Table @{Label = 'Name'; Expression = { $_.DisplayName } },
-@{Label = 'Version'; Expression = { $_.DisplayVersion } },
-@{Label = 'Publisher'; Expression = { $_.Publisher } },
-@{Label = 'Install Date'; Expression = { $_.InstallDate } } -AutoSize
-$otherBrowsers = Read-Host "Other browsers"
-$softwareValid = Read-No "Software valid?"
+  $InstalledSoftware |
+  Where-Object { $_.DisplayName -ne $null } |
+  Sort-Object DisplayName, DisplayVersion |
+  Format-Table @{Label = 'Name'; Expression = { $_.DisplayName } },
+  @{Label = 'Version'; Expression = { $_.DisplayVersion } },
+  @{Label = 'Publisher'; Expression = { $_.Publisher } },
+  @{Label = 'Install Date'; Expression = { $_.InstallDate } } -AutoSize
+  $otherBrowsers = Read-Host "Other browsers"
+  $softwareValid = Read-No "Software valid?"
+}
 
 
 <# BITLOCKER #>
@@ -816,10 +841,11 @@ if ($bitlocker.ProtectionStatus -eq 1) {
 
   $protector = $bitlocker.KeyProtector | Where-Object { $_.KeyProtectorType -eq 'RecoveryPassword' }
 
-  $bitlockerFilenames = @(
-    "$gi $name $ComputerName Bitlocker $($protector.KeyProtectorId).txt",
-    "$($protector.KeyProtectorId).txt"
-  )
+  $bitlockerFilenames = @()
+  if ($AuditMode -ne "UNATTEND") {
+    $bitlockerFilenames += "$gi $name $ComputerName Bitlocker $($protector.KeyProtectorId).txt"
+  }
+  $bitlockerFilenames += "$ComputerName Bitlocker $($protector.KeyProtectorId).txt"
 
   $bitlockerInfo = "$($protector.KeyProtectorId)`n$($protector.RecoveryPassword)"
 }
@@ -833,9 +859,11 @@ else {
 
 Write-Host "`n=== Output ===`n" -ForegroundColor DarkYellow
 
-$notes = Read-Host "Notes"
+if ($AuditMode -ne "UNATTEND") {
+  $notes = Read-Host "Notes"
+}
 
-if ($warnings.Count -gt 0 -and (Read-Y "Would you like to add warnings to notes?")) {
+if ($warnings.Count -gt 0 -and ($AuditMode -eq "UNATTEND" -or (Read-Y "Would you like to add warnings to notes?"))) {
   if ($notes -ne "") {
     $notes += "; "
   }
@@ -911,4 +939,6 @@ foreach ($path in $outPaths) {
   }
 }
 
-Read-Host -Prompt "Press Enter to exit"
+if ($AuditMode -ne "UNATTEND") {
+  Read-Host -Prompt "Press Enter to exit"
+}
