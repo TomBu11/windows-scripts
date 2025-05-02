@@ -1,5 +1,5 @@
 *.iso
 *.tmp
-windows_apps
+exe
 test.ps1
 test.exe
