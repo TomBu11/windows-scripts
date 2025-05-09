@@ -15,7 +15,7 @@ param (
   [string]$softwareValid = "UNATTEND"
 )
 
-Write-Host "Audit script version 1.0.2`n" -ForegroundColor Green
+Write-Host "Audit script version 1.0.3`n" -ForegroundColor Green
 
 $hardwareReadinessScript = @'
 #=============================================================================================================================
@@ -530,6 +530,28 @@ else {
 
 <# HELPER FUNCTIONS #>
 
+function Get-CommandStatus {
+  param (
+      [ScriptBlock]$Command,
+      [string]$Message
+  )
+
+  try {
+      $CommandResult = & $Command
+      if ($?) {
+          Write-Host "Got $Message"
+      } else {
+          Write-Host "Failed to get $Message" -ForegroundColor Red
+      }
+  }
+  catch {
+      Write-Host "Error while getting ${Message}: $_" -ForegroundColor Red
+      $CommandResult = $null  # In case of an error, return $null
+  }
+
+  return $CommandResult
+}
+
 # (from https://www.dmtf.org/sites/default/files/standards/documents/DSP0134_3.4.0a.pdf)
 Function Convert-RamMemoryType([Parameter(Mandatory = $true)]$MemoryTypeDecimal) {
   switch ($MemoryTypeDecimal) {
@@ -604,14 +626,10 @@ function Get-TeamViewerInfo {
   $TeamViewerInfo = $null
   foreach ($path in $possiblePaths) {
     if (Test-Path $path) {
-      $TeamViewerInfo = Get-ItemProperty -Path $path
-      if ($?) {
-        Write-Host "Got TeamViewer info from: $path"
-        return $TeamViewerInfo
-      }
+      $TeamViewerInfo = Get-CommandStatus -Command { Get-ItemProperty -Path $path } -Message "TeamViewer info from: $path"
     }
   }
-  return $null
+  return $TeamViewerInfo
 }
 
 function Add-RocksaltUser {
@@ -644,25 +662,19 @@ else {
 Write-Host "`n=== Getting system information ===`n" -ForegroundColor DarkYellow
 
 $ComputerName = $env:COMPUTERNAME
-$ComputerInfo = Get-ComputerInfo; if ($?) { Write-Host 'Got computer info' }
-$RamInfo = Get-WmiObject -Class Win32_PhysicalMemory; if ($?) { Write-Host 'Got RAM' }
-$Admins = Get-LocalGroupMember -Group "Administrators" | Select-Object -ExpandProperty Name; if ($?) { Write-Host 'Got admins' }
-$Users = Get-LocalGroupMember -Group "Users" | Where-Object {
+$ComputerInfo = Get-CommandStatus -Command { Get-ComputerInfo } -Message 'computer info'
+$RamInfo = Get-CommandStatus -Command { Get-WmiObject -Class Win32_PhysicalMemory } -Message 'RAM'
+$Admins = Get-CommandStatus -Command { Get-LocalGroupMember -Group "Administrators" | Select-Object -ExpandProperty Name } -Message 'admins'
+$Users = Get-CommandStatus -Command { Get-LocalGroupMember -Group "Users" | Where-Object {
   $Admins -notcontains $_.Name -and
   $_.Name -notmatch "^NT AUTHORITY" -and
   $_.Name -notmatch "^BUILTIN"
-} | Select-Object -ExpandProperty Name; if ($?) { Write-Host 'Got users' }
-$TeamViewerInfo = Get-TeamViewerInfo if ($?) { Write-Host 'Got TeamViewer' }
-try {
-  $bitlocker = Get-BitLockerVolume -MountPoint "C:"
-  Write-Host "Got BitLocker"
-}
-catch {
-  Write-Host "Failed to retrieve BitLocker" -ForegroundColor Red
-}
-$PhysicalDisks = Get-PhysicalDisk; if ($?) { Write-Host 'Got disks' }
-$InstalledSoftware = Get-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*, HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*; if ($?) { Write-Host 'Got software' }
-$HardwareReadiness = Invoke-Expression $hardwareReadinessScript 2>&1 | Out-String | ConvertFrom-Json; if ($?) { Write-Host 'Got hardware readiness' }
+} | Select-Object -ExpandProperty Name } -Message 'users'
+$TeamViewerInfo = Get-TeamViewerInfo
+$bitlocker = Get-CommandStatus -Command { Get-BitLockerVolume -MountPoint "C:" } -Message 'BitLocker'
+$PhysicalDisks = Get-CommandStatus -Command { Get-PhysicalDisk } -Message 'disks'
+$InstalledSoftware = Get-CommandStatus -Command { Get-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*, HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* } -Message 'software'
+$HardwareReadiness = Get-CommandStatus -Command { Invoke-Expression $hardwareReadinessScript 2>&1 | Out-String | ConvertFrom-Json } -Message 'hardware readiness'
 
 
 <# AUDIT INFORMATION #>
@@ -930,11 +942,11 @@ foreach ($path in $outPaths) {
     $bitlockerFile = Join-Path $path $file
     $bitlockerInfo | Out-File -FilePath $bitlockerFile
     if (Test-Path $bitlockerFile) {
-      Write-Host "Bitlocker saved to $bitlockerFile"
+      Write-Host "Bitlocker saved to $bitlockerFile`n"
       break
     }
     else {
-      Write-Host "Failed to save Bitlocker info to $bitlockerFile" -ForegroundColor Red
+      Write-Host "Failed to save Bitlocker info to $bitlockerFile`n" -ForegroundColor Red
     }
   }
 }
