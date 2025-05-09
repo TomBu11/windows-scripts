@@ -1,3 +1,3 @@
-[submodule "unattend/Ventoy"]
-	path = unattend/Ventoy
+[submodule "Ventoy"]
+	path = Ventoy
 	url = git@github.com:TomBu11/Ventoy.git
